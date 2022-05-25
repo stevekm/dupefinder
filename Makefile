@@ -5,6 +5,7 @@ SHELL:=/bin/bash
 # $ go mod init dupefinder
 # # gofmt -l -w .
 # # # $ go get github.com/google/go-cmp
+# go run cmd/main.go .
 
 test:
 	set -euo pipefail
