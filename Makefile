@@ -14,3 +14,6 @@ test:
 
 docker-test:
 	docker run --workdir $(CURDIR) -v $(CURDIR):$(CURDIR) --rm -ti golang:1.18-alpine ./test.sh
+
+build:
+	go build -o ./dupefinder cmd/main.go
