@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// get the md5 hash of an open file handle
 func getFileMD5(inputFile *os.File) string {
 	hash := md5.New()
 	if _, err := io.Copy(hash, inputFile); err != nil {
@@ -22,23 +23,14 @@ func getFileMD5(inputFile *os.File) string {
 	return hashStr
 }
 
-// https://pkg.go.dev/io/fs#FileInfo
-func getFileSize(inputFile *os.File) int64 {
-	fi, err := inputFile.Stat()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return fi.Size()
-}
-
-
 type FileEntry struct {
 	Path string
-	Name string
+	Name string // basename of the file
 	Size int64
-	// Info fs.FileInfo
 }
 
+// walk the directory tree recursively to find all files
+// skip dirs that are in the skipDirs list
 func GetFiles(dirPath string, skipDirs []string) []FileEntry {
 	fileList := []FileEntry{}
 	// https://pkg.go.dev/path/filepath#Walk
@@ -52,6 +44,7 @@ func GetFiles(dirPath string, skipDirs []string) []FileEntry {
 			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
 			return err
 		}
+		// skip some dirs
 		if info.IsDir() &&
 			containsStr(skipDirs, info.Name()) ||
 			containsStr(skipDirs, path) {
@@ -59,13 +52,12 @@ func GetFiles(dirPath string, skipDirs []string) []FileEntry {
 			return filepath.SkipDir
 		}
 
-		// check if its a file or dir
+		// if its a file then add it to the list
 		// https://pkg.go.dev/io/fs#FileMode.IsRegular
 		if info.Mode().IsRegular() {
 			file := FileEntry{
 				Path: path,
 				Name: info.Name(),
-				// Info: info,
 				Size: info.Size(),
 			}
 			fileList = append(fileList, file)
@@ -81,7 +73,8 @@ func GetFiles(dirPath string, skipDirs []string) []FileEntry {
 	return fileList
 }
 
-
+// check if a slice contains a specific string
+// TODO: update to Go 1.18 so we dont have to do this anymore
 func containsStr(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
@@ -91,6 +84,9 @@ func containsStr(s []string, e string) bool {
 	return false
 }
 
+// find all the duplicate files in the dir
+// Duplicates = same file size, same hash value
+// TODO: this might need to be broken up to aid garbage collection ??
 func FindDupes(dirPath string, skipDirs []string) map[string][]string {
 	fileList := GetFiles(dirPath, skipDirs)
 
@@ -125,6 +121,7 @@ func FindDupes(dirPath string, skipDirs []string) map[string][]string {
 		}
 	}
 
+	// reduce the list to only the entries with multiple files with the same hash
 	hashDupes := map[string][]string{}
 	for hash, entries := range hashes {
 		if len(entries) > 1 {

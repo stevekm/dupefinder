@@ -10,7 +10,6 @@ import (
 )
 
 
-// NOTE: some of these methods are already depricated
 func TestUtil(t *testing.T){
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
 	tempfile1, err := os.CreateTemp(tempdir, "file1.") // *os.File
@@ -41,13 +40,6 @@ func TestUtil(t *testing.T){
 		}
 	})
 
-	t.Run("Get file size", func(t *testing.T) {
-		got := getFileSize(tempfile1)
-		var want int64 = 7
-		if got != want {
-			t.Errorf("got %v is not the same as %v", got, want)
-		}
-	})
 }
 
 
@@ -148,20 +140,6 @@ func TestFinder(t *testing.T) {
 			// }
 			fmt.Println(gotFormat)
 		}
-
-
-
-
-
-
-		// got := IsUncalledFilter(&mutation)
-		// want := true
-		// if !cmp.Equal(got, want) {
-		// 	t.Errorf("got %v is not the same as %v", got, want)
-		// }
-		// if diff := cmp.Diff(want, got); diff != "" {
-		// 	t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
-		// }
 
 	})
 }
