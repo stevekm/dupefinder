@@ -117,6 +117,7 @@ func FindDupes(dirPath string, skipDirs []string) map[string][]string {
 				log.Fatalf("error opening the path %v\n", err)
 			}
 			hash := getFileMD5(file)
+			file.Close()
 			hashes[hash] = append(hashes[hash], entry)
 		}
 	}
