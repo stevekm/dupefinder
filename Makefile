@@ -17,3 +17,13 @@ docker-test:
 
 build:
 	go build -o ./dupefinder cmd/main.go
+
+# https://www.digitalocean.com/community/tutorials/how-to-build-go-executables-for-multiple-platforms-on-ubuntu-16-04
+GIT_TAG:=$(shell git tag)
+build-all:
+	mkdir -p build ; \
+	for os in darwin linux; do \
+	for arch in amd64 arm64; do \
+	GOOS=$$os GOARCH=$$arch go build -o build/dupefinder-$(GIT_TAG)-$$os-$$arch cmd/main.go ; \
+	done ; \
+	done
