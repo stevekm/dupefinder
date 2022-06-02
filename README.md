@@ -16,3 +16,11 @@ make build
 ```
 ./dupefinder /path/to/dir
 ```
+
+Example:
+
+```
+$ ./dupefinder .
+122641c2d78877cd166493bf15c80c4b	.git/refs/heads/master
+122641c2d78877cd166493bf15c80c4b	.git/refs/remotes/origin/master
+```
