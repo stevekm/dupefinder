@@ -39,6 +39,7 @@ func GetFiles(dirPath string, skipDirs []string) []FileEntry {
 	// https://pkg.go.dev/io/fs#DirEntry
 	// NOTE: dont think WalkDir will save much time since I want the extra info anyway??
 	// https://pkg.go.dev/io/fs#FileInfo
+	// https://golang.hotexamples.com/examples/os/-/IsPermission/golang-ispermission-function-examples.html
 	err := filepath.Walk(dirPath, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
@@ -113,6 +114,12 @@ func FindDupes(dirPath string, skipDirs []string) map[string][]string {
 	for _, entries := range sizeDupes {
 		for _, entry := range entries {
 			file, err := os.Open(entry.Path)
+			// if file read permission is denied, skip this file
+			if os.IsPermission(err) {
+				fmt.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
+				continue
+			}
+
 			if err != nil {
 				log.Fatalf("error opening the path %v\n", err)
 			}

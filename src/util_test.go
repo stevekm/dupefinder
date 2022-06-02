@@ -180,5 +180,31 @@ func TestTooManyFiles(t *testing.T){
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
 	})
+}
 
+
+func TestPermissionsError(t *testing.T){
+	// setup test dirs & files
+	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
+
+	// create two temp files with the same contents
+	tempfile1 := createTempFile(tempdir, "f.", "foo")
+	defer tempfile1.Close()
+	tempfile2 := createTempFile(tempdir, "f2.", "foo")
+	defer tempfile2.Close()
+
+	// remove read permissions from one file
+	err := os.Chmod(tempfile2.Name(), 0000)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	t.Run("Find dupes while avoiding files with permissions errors", func(t *testing.T) {
+		var skipDirs = []string{}
+		got := FindDupes(tempdir, skipDirs)
+		want := map[string][]string{}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+	})
 }
