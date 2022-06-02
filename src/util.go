@@ -9,7 +9,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"io/fs"
-	"strings"
 )
 
 // get the md5 hash of an open file handle
@@ -144,8 +143,9 @@ func FindDupes(dirPath string, skipDirs []string) map[string][]string {
 
 func DupesFormatter (hash string, dupes []string) string {
 	var outputStr string
-	outputStr = hash + "\n"
-	outputStr += strings.Join(dupes, "\n")
-	outputStr += "\n"
+	for _, v := range dupes {
+		s := hash + "\t" + v + "\n"
+		outputStr += s
+	}
 	return outputStr
 }
