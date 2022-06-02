@@ -22,8 +22,11 @@ build:
 GIT_TAG:=$(shell git tag)
 build-all:
 	mkdir -p build ; \
-	for os in darwin linux; do \
+	for os in darwin linux windows; do \
 	for arch in amd64 arm64; do \
-	GOOS=$$os GOARCH=$$arch go build -o build/dupefinder-$(GIT_TAG)-$$os-$$arch cmd/main.go ; \
+	output="build/dupefinder-$(GIT_TAG)-$$os-$$arch" ; \
+	if [ "$${os}" == "windows" ]; then output="$${output}.exe"; fi ; \
+	echo "building: $$output" ; \
+	GOOS=$$os GOARCH=$$arch go build -o "$${output}" cmd/main.go ; \
 	done ; \
 	done
