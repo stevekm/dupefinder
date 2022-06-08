@@ -10,6 +10,18 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+// $ DIR_TEST=True make test
+func skipDirTest(t *testing.T){
+	var dirTestVar = os.Getenv("DIR_TEST")
+	var runDirTest bool
+	if dirTestVar != "" {
+		runDirTest = true
+	}
+	if ! runDirTest {
+    t.Skip(">>> Skipping dir test")
+  }
+}
+
 // create a temp file in a dir and write something to its contents
 func createTempFile(tempdir string, filename string, contents string) *os.File {
 	tempfile, err := os.CreateTemp(tempdir, filename)
@@ -151,22 +163,25 @@ func TestFinder(t *testing.T) {
 
 
 func TestTooManyFiles(t *testing.T){
+	// only run this test if DIR_TEST env var was enabled because it creates a lot of files
+	skipDirTest(t)
+
 	// setup test dirs & files
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
-	// make a large number of temp files, each with different contents
-	ints := makeRange(0, 20000)
-	for i := range ints {
-		i_str := strconv.Itoa(i)
-		t := createTempFile(tempdir, i_str, i_str)
-		t.Close()
-	}
-	// create two temp files with the same contents
-	tempfile1 := createTempFile(tempdir, "f.", "foo")
-	defer tempfile1.Close()
-	tempfile2 := createTempFile(tempdir, "f2.", "foo")
-	defer tempfile2.Close()
 
 	t.Run("Find dupes without exceeding the limit on number of open files", func(t *testing.T) {
+		// make a large number of temp files, each with different contents
+		ints := makeRange(0, 20000)
+		for i := range ints {
+			i_str := strconv.Itoa(i)
+			t := createTempFile(tempdir, i_str, i_str)
+			t.Close()
+		}
+		// create two temp files with the same contents
+		tempfile1 := createTempFile(tempdir, "f.", "foo")
+		defer tempfile1.Close()
+		tempfile2 := createTempFile(tempdir, "f2.", "foo")
+		defer tempfile2.Close()
 
 		var skipDirs = []string{}
 		got := FindDupes(tempdir, skipDirs)
