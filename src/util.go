@@ -1,7 +1,6 @@
 package finder
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"io"
@@ -10,6 +9,8 @@ import (
 	"encoding/hex"
 	"io/fs"
 )
+
+var logger = log.New(os.Stderr, "", 0)
 
 // get the md5 hash of an open file handle
 func getFileMD5(inputFile *os.File) string {
@@ -41,14 +42,14 @@ func GetFiles(dirPath string, skipDirs []string) []FileEntry {
 	// https://golang.hotexamples.com/examples/os/-/IsPermission/golang-ispermission-function-examples.html
 	err := filepath.Walk(dirPath, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
-			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
+			logger.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
 			return err
 		}
 		// skip some dirs
 		if info.IsDir() &&
 			containsStr(skipDirs, info.Name()) ||
 			containsStr(skipDirs, path) {
-			fmt.Printf("skipping a dir: %+v %v \n", info.Name(), path)
+			logger.Printf("skipping a dir: %+v %v \n", info.Name(), path)
 			return filepath.SkipDir
 		}
 
@@ -115,7 +116,7 @@ func FindDupes(dirPath string, skipDirs []string) map[string][]string {
 			file, err := os.Open(entry.Path)
 			// if file read permission is denied, skip this file
 			if os.IsPermission(err) {
-				fmt.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
+				logger.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
 				continue
 			}
 
