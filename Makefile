@@ -17,7 +17,7 @@ docker-test:
 
 build:
 	go build -o ./dupefinder cmd/main.go
-
+.PHONY:build
 # https://www.digitalocean.com/community/tutorials/how-to-build-go-executables-for-multiple-platforms-on-ubuntu-16-04
 GIT_TAG:=$(shell git tag)
 build-all:
