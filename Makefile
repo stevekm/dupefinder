@@ -19,12 +19,12 @@ build:
 	go build -o ./dupefinder cmd/main.go
 .PHONY:build
 # https://www.digitalocean.com/community/tutorials/how-to-build-go-executables-for-multiple-platforms-on-ubuntu-16-04
-GIT_TAG:=$(shell git tag)
+GIT_TAG:=$(shell git describe --tags)
 build-all:
 	mkdir -p build ; \
 	for os in darwin linux windows; do \
 	for arch in amd64 arm64; do \
-	output="build/dupefinder-$(GIT_TAG)-$$os-$$arch" ; \
+	output="build/dupefinder-v$(GIT_TAG)-$$os-$$arch" ; \
 	if [ "$${os}" == "windows" ]; then output="$${output}.exe"; fi ; \
 	echo "building: $$output" ; \
 	GOOS=$$os GOARCH=$$arch go build -o "$${output}" cmd/main.go ; \
