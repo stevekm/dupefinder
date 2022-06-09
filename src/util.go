@@ -41,8 +41,14 @@ func GetFiles(dirPath string, skipDirs []string) []FileEntry {
 	// https://pkg.go.dev/io/fs#FileInfo
 	// https://golang.hotexamples.com/examples/os/-/IsPermission/golang-ispermission-function-examples.html
 	err := filepath.Walk(dirPath, func(path string, info fs.FileInfo, err error) error {
+		// skip item that cannot be read
+		if os.IsPermission(err) {
+			logger.Printf("Skipping path that could not be read %q: %v\n", path, err)
+			return filepath.SkipDir
+		}
+
 		if err != nil {
-			logger.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
+			logger.Printf("Error encountered when accessing path %q: %v\n", path, err)
 			return err
 		}
 		// skip some dirs

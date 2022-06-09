@@ -148,13 +148,14 @@ func TestFinder(t *testing.T) {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
 
+		// dont make a test for this just look at it with your eyeballs and decide if its OK or not
 		for hash, paths := range got {
 			gotFormat := DupesFormatter(hash, paths)
+			fmt.Println(gotFormat)
 			// wantFormat :=
 			// if diff := cmp.Diff(want, gotFormat); diff != "" {
 			// 	t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 			// }
-			fmt.Println(gotFormat)
 		}
 
 	})
@@ -220,6 +221,54 @@ func TestPermissionsError(t *testing.T){
 		want := map[string][]string{}
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("Find dupes while skipping directories with permissions errors", func(t *testing.T) {
+		// make a subdir to hold some files
+		subdir1 := filepath.Join(tempdir, "subdir.1")
+		err := os.MkdirAll(subdir1, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// make another sub-subdir that we are gonna mess with permissions on
+		subdir2 := filepath.Join(tempdir, "subdir.2")
+		err = os.MkdirAll(subdir2, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// add some files with duplicate contents in the sub-subdir
+		createTempFile(subdir2, "f.", "foo\n")
+		createTempFile(subdir2, "f2.", "foo\n")
+
+		// add similar files in the parent dir
+		tempfile3 := createTempFile(subdir1, "f3.", "foo\n")
+		tempfile4 := createTempFile(subdir1, "f4.", "foo\n")
+
+		// remove read permissions from the directory file
+		err = os.Chmod(subdir2, 0000)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var skipDirs = []string{}
+		got := FindDupes(subdir1, skipDirs)
+		want := map[string][]string{
+			"d3b07384d113edec49eaa6238ad5ff00": []string{
+				tempfile3.Name(),
+				tempfile4.Name(),
+			},
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+		// fix the permissons so we can cleanup
+		err = os.Chmod(subdir2, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
 		}
 	})
 }
