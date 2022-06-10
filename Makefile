@@ -30,3 +30,39 @@ build-all:
 	GOOS=$$os GOARCH=$$arch go build -o "$${output}" cmd/main.go ; \
 	done ; \
 	done
+
+
+
+
+
+
+
+# ~~~~~ Set up Benchmark dir ~~~~~ #
+# set up a dir with tons of files and some very large duplicate files
+# install conda to get a lot of files and dirs
+# USAGE: $ ./dupefinder conda
+
+CONDASH:=Miniconda3-py39_4.12.0-MacOSX-arm64.sh
+# Miniconda3-py39_4.12.0-MacOSX-x86_64.sh
+# Miniconda3-py39_4.12.0-Linux-x86_64.sh
+CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
+$(CONDASH):
+	wget "$(CONDAURL)"
+
+conda: $(CONDASH)
+	@set +e
+	bash "$(CONDASH)" -b -p conda
+	rm -f "$(CONDASH)"
+
+# https://go.dev/dl/
+go1.18.3.darwin-amd64.tar.gz:
+	wget https://go.dev/dl/go1.18.3.darwin-amd64.tar.gz
+
+big-dir-for-benchmarks: conda go1.18.3.darwin-amd64.tar.gz
+	set -e
+	/bin/cp go1.18.3.darwin-amd64.tar.gz conda/bin
+	/bin/cp go1.18.3.darwin-amd64.tar.gz conda/include
+	cat go1.18.3.darwin-amd64.tar.gz > conda/etc/foo
+	cat go1.18.3.darwin-amd64.tar.gz >> conda/etc/foo
+	cat go1.18.3.darwin-amd64.tar.gz >> conda/etc/foo
+	/bin/cp conda/etc/foo conda/bin/bar

@@ -1,3 +1,6 @@
 dupefinder
 dupes*txt
 build/
+conda/
+Miniconda*.sh
+go1.18.3.darwin-amd64.tar.gz
