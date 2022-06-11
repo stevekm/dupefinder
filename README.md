@@ -15,6 +15,12 @@ $ ./dupefinder .
 122641c2d78877cd166493bf15c80c4b	.git/refs/remotes/origin/master
 ```
 
+Include file sizes in output and sort to find the largest duplicates:
+
+```
+$ ./dupefinder --print-size . | sort -k3,3n
+```
+
 # Install
 
 Download and run a pre-built binary from a release: https://github.com/stevekm/dupefinder/releases
@@ -26,4 +32,3 @@ git clone https://github.com/stevekm/dupefinder.git
 cd dupefinder
 make build
 ```
-

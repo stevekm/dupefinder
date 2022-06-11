@@ -192,12 +192,3 @@ func FindDupes(dirPath string, skipDirs []string) map[string][]FileEntry {
 
 	return hashDupes
 }
-
-func DupesFormatter (hash string, dupes []FileEntry) string {
-	var outputStr string
-	for _, v := range dupes {
-		s := hash + "\t" + v.Path + "\n"
-		outputStr += s
-	}
-	return outputStr
-}

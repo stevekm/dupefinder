@@ -149,7 +149,8 @@ func TestFinder(t *testing.T) {
 		}
 
 		// test that the console formatter prints them in the expected format
-		gotFormat := DupesFormatter(wantHash, got[wantHash])
+		config := FormatConfig{Size: false}
+		gotFormat := DupesFormatter(wantHash, got[wantHash], config)
 		var wantFormat string
 		for _, entry := range want[wantHash] {
 			wantFormat += wantHash + "\t" + entry.Path + "\n"

@@ -10,22 +10,24 @@ import (
 type CLI struct {
   InputDir string `help:"path to input file to search" arg:""`
   IgnoreFile string `help:"path to file of dir paths to ignore"`
+  PrintSize bool `help:"print the file size"`
 }
 
 func (cli *CLI) Run () error {
-  err := run(cli.InputDir, cli.IgnoreFile)
+  err := run(cli.InputDir, cli.IgnoreFile, cli.PrintSize)
   if err != nil {
 		log.Fatalln(err)
 	}
   return nil
 }
 
-func run (inputDir string, ignoreFile string) error {
+func run (inputDir string, ignoreFile string, printSize bool) error {
   // ignoreFile goes here
+  formatConfig := finder.FormatConfig{Size: printSize}
   var skipDirs = []string{}
   dupes := finder.FindDupes(inputDir, skipDirs)
   for hash, entries := range dupes {
-    format := finder.DupesFormatter(hash, entries)
+    format := finder.DupesFormatter(hash, entries, formatConfig)
     // fmt.Println(format)
     fmt.Printf("%s", format) // format has newline embedded at the end
   }
