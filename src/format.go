@@ -14,7 +14,7 @@ func DupesFormatter (hash string, dupes []FileEntry, config FormatConfig) string
 	for _, v := range dupes {
     var s string
     if config.Size {
-      s = hash + "\t" + v.Path + "\t" + strconv.FormatInt(v.Size, 10) + "\n"
+      s = hash + "\t" + strconv.FormatInt(v.Size, 10) + "\t" + v.Path + "\n"
     } else {
       s = hash + "\t" + v.Path + "\n"
     }
