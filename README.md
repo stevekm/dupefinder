@@ -18,7 +18,7 @@ $ ./dupefinder .
 Include file sizes in output and sort to find the largest duplicates:
 
 ```
-$ ./dupefinder --print-size . | sort -k3,3n
+$ ./dupefinder --print-size ./ | sort -k2,2n
 ```
 
 # Install
