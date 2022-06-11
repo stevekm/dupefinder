@@ -29,6 +29,28 @@ type FileEntry struct {
 	Size int64
 }
 
+// method for creating a new FileEntry when we have only the filepath available
+func NewFileEntryFromPath (filepath string) FileEntry {
+	file, err := os.Open(filepath)
+	if err != nil {
+		log.Fatalf("error opening the path %v\n", err)
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	entry := FileEntry{
+				Path: filepath,
+				Name: info.Name(),
+				Size: info.Size(),
+			}
+
+	return entry
+}
+
 // walk the directory tree recursively to find all files
 // skip dirs that are in the skipDirs list
 func GetFiles(dirPath string, skipDirs []string) []FileEntry {
@@ -91,21 +113,19 @@ func containsStr(s []string, e string) bool {
 	return false
 }
 
-// find all the duplicate files in the dir
-// Duplicates = same file size, same hash value
-// TODO: this might need to be broken up to aid garbage collection ??
-func FindDupes(dirPath string, skipDirs []string) map[string][]string {
-	fileList := GetFiles(dirPath, skipDirs)
-
-	// first group by files with the same size
+// group all files with the same size value
+func GroupBySize (fileList []FileEntry) map[int64][]FileEntry {
 	sizes := map[int64][]FileEntry{}
 	for _, fileEntry := range fileList {
 		sizes[fileEntry.Size] = append(sizes[fileEntry.Size], fileEntry)
 	}
+	return sizes
+}
 
-	// find sizes with multiple files
+// find size values that have multiple associated files
+func FindSizeDupes (sizeMap map[int64][]FileEntry) [][]FileEntry {
 	sizeDupes := [][]FileEntry{}
-	for _, v := range sizes {
+	for _, v := range sizeMap {
 		names := []FileEntry{}
 		if len(v) > 1 {
 			for _, fileEntry := range v {
@@ -114,10 +134,13 @@ func FindDupes(dirPath string, skipDirs []string) map[string][]string {
 			sizeDupes = append(sizeDupes, names)
 		}
 	}
+	return sizeDupes
+}
 
-	// check the hashes to determine if they are actually duplicates
+// re-arrange groups of files based on their hash values
+func GroupByHash (fileGroups [][]FileEntry) map[string][]FileEntry {
 	hashes := map[string][]FileEntry{}
-	for _, entries := range sizeDupes {
+	for _, entries := range fileGroups {
 		for _, entry := range entries {
 			file, err := os.Open(entry.Path)
 			// if file read permission is denied, skip this file
@@ -134,24 +157,46 @@ func FindDupes(dirPath string, skipDirs []string) map[string][]string {
 			hashes[hash] = append(hashes[hash], entry)
 		}
 	}
+	return hashes
+}
 
-	// reduce the list to only the entries with multiple files with the same hash
-	hashDupes := map[string][]string{}
-	for hash, entries := range hashes {
+func FindHashDupes (hashMap map[string][]FileEntry) map[string][]FileEntry {
+	hashDupes := map[string][]FileEntry{}
+	for hash, entries := range hashMap {
 		if len(entries) > 1 {
 			for _, entry := range entries {
-				hashDupes[hash] = append(hashDupes[hash], entry.Path)
+				hashDupes[hash] = append(hashDupes[hash], entry)
 			}
 		}
 	}
+	return hashDupes
+}
+
+// find all the duplicate files in the dir
+// Duplicates = same file size, same hash value
+// TODO: this might need to be broken up to aid garbage collection ??
+func FindDupes(dirPath string, skipDirs []string) map[string][]FileEntry {
+	fileList := GetFiles(dirPath, skipDirs)
+
+	// first group by files with the same size
+	sizes := GroupBySize(fileList)
+
+	// find sizes with multiple files
+	sizeDupes := FindSizeDupes(sizes)
+
+	// check the hashes to determine if they are actually duplicates
+	hashes := GroupByHash(sizeDupes)
+
+	// reduce the list to only the entries with multiple files with the same hash
+	hashDupes := FindHashDupes(hashes)
 
 	return hashDupes
 }
 
-func DupesFormatter (hash string, dupes []string) string {
+func DupesFormatter (hash string, dupes []FileEntry) string {
 	var outputStr string
 	for _, v := range dupes {
-		s := hash + "\t" + v + "\n"
+		s := hash + "\t" + v.Path + "\n"
 		outputStr += s
 	}
 	return outputStr

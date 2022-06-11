@@ -24,8 +24,8 @@ func run (inputDir string, ignoreFile string) error {
   // ignoreFile goes here
   var skipDirs = []string{}
   dupes := finder.FindDupes(inputDir, skipDirs)
-  for hash, paths := range dupes {
-    format := finder.DupesFormatter(hash, paths)
+  for hash, entries := range dupes {
+    format := finder.DupesFormatter(hash, entries)
     // fmt.Println(format)
     fmt.Printf("%s", format) // format has newline embedded at the end
   }

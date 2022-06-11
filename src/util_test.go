@@ -134,28 +134,29 @@ func TestFinder(t *testing.T) {
 	t.Run("Test find dupes", func(t *testing.T) {
 		var skipDirs = []string{subdir3}
 		got := FindDupes(tempdir, skipDirs)
-		// fmt.Printf("Duplicate file sizes: %v\n", got)
-		// fmt.Println(len(got))
-		want := map[string][]string{
-			"d41d8cd98f00b204e9800998ecf8427e": []string{
-				tempfile3.Name(),
-				tempfile2.Name(),
-				tempfile4.Name(),
+		wantHash := "d41d8cd98f00b204e9800998ecf8427e"
+		want := map[string][]FileEntry{
+			wantHash: []FileEntry{
+				NewFileEntryFromPath(tempfile3.Name()),
+				NewFileEntryFromPath(tempfile2.Name()),
+				NewFileEntryFromPath(tempfile4.Name()),
 			},
 		}
+		// test that we found the expected duplicate files
 		// NOTE: might need to revise this test to not depend on order of items in the list!
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
 
-		// dont make a test for this just look at it with your eyeballs and decide if its OK or not
-		for hash, paths := range got {
-			gotFormat := DupesFormatter(hash, paths)
-			fmt.Println(gotFormat)
-			// wantFormat :=
-			// if diff := cmp.Diff(want, gotFormat); diff != "" {
-			// 	t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
-			// }
+		// test that the console formatter prints them in the expected format
+		gotFormat := DupesFormatter(wantHash, got[wantHash])
+		var wantFormat string
+		for _, entry := range want[wantHash] {
+			wantFormat += wantHash + "\t" + entry.Path + "\n"
+		}
+
+		if diff := cmp.Diff(wantFormat, gotFormat); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
 
 	})
@@ -218,7 +219,7 @@ func TestPermissionsError(t *testing.T){
 	t.Run("Find dupes while avoiding files with permissions errors", func(t *testing.T) {
 		var skipDirs = []string{}
 		got := FindDupes(tempdir, skipDirs)
-		want := map[string][]string{}
+		want := map[string][]FileEntry{}
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
@@ -255,10 +256,10 @@ func TestPermissionsError(t *testing.T){
 
 		var skipDirs = []string{}
 		got := FindDupes(subdir1, skipDirs)
-		want := map[string][]string{
-			"d3b07384d113edec49eaa6238ad5ff00": []string{
-				tempfile3.Name(),
-				tempfile4.Name(),
+		want := map[string][]FileEntry{
+			"d3b07384d113edec49eaa6238ad5ff00": []FileEntry{
+				NewFileEntryFromPath(tempfile3.Name()),
+				NewFileEntryFromPath(tempfile4.Name()),
 			},
 		}
 		if diff := cmp.Diff(want, got); diff != "" {
