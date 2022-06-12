@@ -123,46 +123,44 @@ func GroupBySize (fileList []FileEntry) map[int64][]FileEntry {
 }
 
 // find size values that have multiple associated files
-func FindSizeDupes (sizeMap map[int64][]FileEntry) [][]FileEntry {
-	sizeDupes := [][]FileEntry{}
+func FindSizeDupes (fileList []FileEntry) []FileEntry {
+	sizeMap := GroupBySize(fileList)
+	sizeDupesList := []FileEntry{}
 	for _, v := range sizeMap {
-		names := []FileEntry{}
 		if len(v) > 1 {
 			for _, fileEntry := range v {
-				names = append(names, fileEntry)
+				sizeDupesList = append(sizeDupesList, fileEntry)
 			}
-			sizeDupes = append(sizeDupes, names)
 		}
 	}
-	return sizeDupes
+	return sizeDupesList
 }
 
-// re-arrange groups of files based on their hash values
-func GroupByHash (fileGroups [][]FileEntry) map[string][]FileEntry {
-	hashes := map[string][]FileEntry{}
-	for _, entries := range fileGroups {
-		for _, entry := range entries {
-			file, err := os.Open(entry.Path)
-			// if file read permission is denied, skip this file
-			if os.IsPermission(err) {
-				logger.Printf("WARNING: Skipping file that could not be opened due to permissions error: %v\n", err)
-				continue
-			}
-
-			if err != nil {
-				// log.Fatalf("error opening the path %v\n", err)
-				logger.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
-				continue
-			}
-			hash := getFileMD5(file)
-			file.Close()
-			hashes[hash] = append(hashes[hash], entry)
+// arrange file list into groupings based on hash value
+func GroupByHash (fileList []FileEntry) map[string][]FileEntry {
+	hashMap := map[string][]FileEntry{}
+	for _, entry := range fileList {
+		file, err := os.Open(entry.Path)
+		// if file read permission is denied, skip this file
+		if os.IsPermission(err) {
+			logger.Printf("WARNING: Skipping file that could not be opened due to permissions error: %v\n", err)
+			continue
 		}
+
+		if err != nil {
+			logger.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
+			continue
+		}
+		hash := getFileMD5(file)
+		file.Close()
+		hashMap[hash] = append(hashMap[hash], entry)
 	}
-	return hashes
+	return hashMap
 }
 
-func FindHashDupes (hashMap map[string][]FileEntry) map[string][]FileEntry {
+// find files that have the same hash value
+func FindHashDupes (fileList []FileEntry) map[string][]FileEntry {
+	hashMap := GroupByHash(fileList)
 	hashDupes := map[string][]FileEntry{}
 	for hash, entries := range hashMap {
 		if len(entries) > 1 {
@@ -180,17 +178,11 @@ func FindHashDupes (hashMap map[string][]FileEntry) map[string][]FileEntry {
 func FindDupes(dirPath string, skipDirs []string) map[string][]FileEntry {
 	fileList := GetFiles(dirPath, skipDirs)
 
-	// first group by files with the same size
-	sizes := GroupBySize(fileList)
-
 	// find sizes with multiple files
-	sizeDupes := FindSizeDupes(sizes)
-
-	// check the hashes to determine if they are actually duplicates
-	hashes := GroupByHash(sizeDupes)
+	sizeDupesList := FindSizeDupes(fileList)
 
 	// reduce the list to only the entries with multiple files with the same hash
-	hashDupes := FindHashDupes(hashes)
+	hashDupes := FindHashDupes(sizeDupesList)
 
 	return hashDupes
 }
