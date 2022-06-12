@@ -145,12 +145,14 @@ func GroupByHash (fileGroups [][]FileEntry) map[string][]FileEntry {
 			file, err := os.Open(entry.Path)
 			// if file read permission is denied, skip this file
 			if os.IsPermission(err) {
-				logger.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
+				logger.Printf("WARNING: Skipping file that could not be opened due to permissions error: %v\n", err)
 				continue
 			}
 
 			if err != nil {
-				log.Fatalf("error opening the path %v\n", err)
+				// log.Fatalf("error opening the path %v\n", err)
+				logger.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
+				continue
 			}
 			hash := getFileMD5(file)
 			file.Close()
