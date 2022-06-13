@@ -23,10 +23,17 @@ func getFileMD5(inputFile *os.File) string {
 	return hashStr
 }
 
+// basic file entry
 type FileEntry struct {
 	Path string
 	Name string // basename of the file
 	Size int64
+}
+
+// file entry with hash
+type FileHashEntry struct {
+	File FileEntry
+	Hash string
 }
 
 // method for creating a new FileEntry when we have only the filepath available
@@ -156,6 +163,40 @@ func GroupByHash (fileList []FileEntry) map[string][]FileEntry {
 		hashMap[hash] = append(hashMap[hash], entry)
 	}
 	return hashMap
+}
+
+// handle the file opening and closing in order to get the file hash
+func GetFileHash (fileEntry FileEntry) (FileHashEntry, error) {
+	file, err := os.Open(fileEntry.Path)
+	// if file read permission is denied, skip this file
+	if os.IsPermission(err) {
+		logger.Printf("WARNING: Skipping file that could not be opened due to permissions error: %v\n", err)
+		// continue
+	}
+
+	if err != nil {
+		logger.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
+		// continue
+	}
+	hash := getFileMD5(file)
+	file.Close()
+
+	fileHashEntry := FileHashEntry{File: fileEntry, Hash: hash}
+	return fileHashEntry, err
+}
+
+// get all hashes for all files in the list
+func GetFilesHashes (fileList []FileEntry) []FileHashEntry {
+	fileHashes := []FileHashEntry{}
+	for _, entry := range fileList {
+		fileHashEntry, err := GetFileHash(entry)
+		if err != nil {
+			// logger.Printf("WARNING: Skipping file that could not be opened: %v\n", err)
+			continue
+		}
+		fileHashes = append(fileHashes, fileHashEntry)
+	}
+	return fileHashes
 }
 
 // find files that have the same hash value
