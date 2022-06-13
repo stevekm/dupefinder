@@ -1,10 +1,10 @@
 package finder
 
 import (
-	"os"
-	"path/filepath"
 	"io/fs"
 	"log"
+	"os"
+	"path/filepath"
 )
 
 // check if a slice contains a specific string
@@ -19,7 +19,7 @@ func containsStr(s []string, e string) bool {
 }
 
 // find all files in the directory tree and group them by file size
-func FindFilesSizes (dirPath string, skipDirs []string) (map[int64][]FileEntry, uint64) {
+func FindFilesSizes(dirPath string, skipDirs []string) (map[int64][]FileEntry, uint64) {
 	fileMap := map[int64][]FileEntry{}
 	var numFiles uint64
 
@@ -58,8 +58,6 @@ func FindFilesSizes (dirPath string, skipDirs []string) (map[int64][]FileEntry, 
 
 	return fileMap, numFiles
 }
-
-
 
 // find all the duplicate files in the dir
 // Duplicates = same file size, same hash value

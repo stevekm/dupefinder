@@ -1,9 +1,9 @@
 package finder
 
 import (
-	"os"
-	"log"
 	"io/fs"
+	"log"
+	"os"
 )
 
 // basic file entry
@@ -52,8 +52,7 @@ func NewFileEntryFromPathInfo(filepath string, fileinfo fs.FileInfo) FileEntry {
 	return entry
 }
 
-
-func NewFileHashEntry (fileEntry FileEntry) FileHashEntry {
+func NewFileHashEntry(fileEntry FileEntry) FileHashEntry {
 	fileHashEntry, err := GetFileHash(fileEntry)
 	if err != nil {
 		log.Fatalf("Could not convert FileEntry to FileHashEntry %v\n", err)

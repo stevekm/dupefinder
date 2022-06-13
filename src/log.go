@@ -1,8 +1,8 @@
 package finder
 
 import (
-	"os"
 	"log"
+	"os"
 )
 
 // logger to use throughout the package

@@ -1,9 +1,9 @@
 package finder
 
 import (
-	"os"
-	"log"
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 )
 
@@ -55,7 +55,7 @@ func createSubDir(tempdir string, filename string) string {
 // tempfile2 and tempfile3 have different names but same contents (empty)
 // tempfile3 and tempfile4 have same names and same contents (empty) but different directories
 // tempfile5 is in the subdir to skip and has same size as tempfile2, tempfile3
-func createTempFilesDirs1 (tempdir string) ([]string, []*os.File) {
+func createTempFilesDirs1(tempdir string) ([]string, []*os.File) {
 	subdir1 := createSubDir(tempdir, "subdir.1")
 	subdir2 := createSubDir(tempdir, "subdir.2")
 	subdir3 := createSubDir(tempdir, "subdir.3")
@@ -75,8 +75,8 @@ func createTempFilesDirs1 (tempdir string) ([]string, []*os.File) {
 	tempfile5, _ := createTempFile(subdir3, "file5.", "")
 	// defer tempfile5.Close()
 
-	tempDirs := []string{ subdir1, subdir2, subdir3 }
-	tempFiles := []*os.File{ tempfile1, tempfile2, tempfile3, tempfile4, tempfile5 }
+	tempDirs := []string{subdir1, subdir2, subdir3}
+	tempFiles := []*os.File{tempfile1, tempfile2, tempfile3, tempfile4, tempfile5}
 
 	return tempDirs, tempFiles
 }
