@@ -1,7 +1,6 @@
 package finder
 
 import (
-	"fmt"
 	"github.com/google/go-cmp/cmp"
 	"log"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"testing"
 )
 
+// skip the test with the big dir with lots of files;
 // $ DIR_TEST=True make test
 func skipDirTest(t *testing.T) {
 	var dirTestVar = os.Getenv("DIR_TEST")
@@ -22,75 +22,12 @@ func skipDirTest(t *testing.T) {
 	}
 }
 
-// create a temp file in a dir and write something to its contents
-func createTempFile(tempdir string, filename string, contents string) *os.File {
-	tempfile, err := os.CreateTemp(tempdir, filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// defer tempfile.Close()
-
-	// write to the file
-	if contents != "" {
-		nbytesWritten, err := tempfile.WriteString(contents)
-		if err != nil {
-			fmt.Println(nbytesWritten)
-			log.Fatal(err)
-		}
-
-		// need to reset the cursor after writing
-		i, err := tempfile.Seek(0, 0)
-		if err != nil {
-			fmt.Println("Error", err, i)
-			log.Fatal(err)
-		}
-	}
-
-	return tempfile
-}
-
-// generate a list of numbers
-func makeRange(min, max int) []int {
-	a := make([]int, max-min+1)
-	for i := range a {
-		a[i] = min + i
-	}
-	return a
-}
-
-func TestUtil(t *testing.T) {
-	// setup test dirs & files
-	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
-	tempfile1 := createTempFile(tempdir, "f.", "writes\n")
-
-	t.Run("Get md5 hash", func(t *testing.T) {
-		got := getFileMD5(tempfile1)
-		want := "9d365f59076828add0b000414583cb33"
-		if got != want {
-			t.Errorf("got %v is not the same as %v", got, want)
-		}
-	})
-
-}
-
 func TestFinder(t *testing.T) {
 	// set up temp dirs for tests
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
-	subdir1 := filepath.Join(tempdir, "subdir.1")
-	err := os.MkdirAll(subdir1, os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-	subdir2 := filepath.Join(tempdir, "subdir.2")
-	err = os.MkdirAll(subdir2, os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-	subdir3 := filepath.Join(tempdir, "subdir.3")
-	err = os.MkdirAll(subdir3, os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
+	subdir1 := createSubDir(tempdir, "subdir.1")
+	subdir2 := createSubDir(tempdir, "subdir.2")
+	subdir3 := createSubDir(tempdir, "subdir.3")
 
 	// set up tempfiles for the test
 	// tempfile1 has unique contents
@@ -98,29 +35,19 @@ func TestFinder(t *testing.T) {
 	// tempfile3 and tempfile4 have same names and same contents (empty) but different directories
 	// tempfile5 is in the subdir to skip and has same size as tempfile2, tempfile3
 
-	tempfile1 := createTempFile(subdir1, "file1.", "writes\n")
+	tempfile1, _ := createTempFile(subdir1, "file1.", "writes\n")
 	defer tempfile1.Close()
 
-	tempfile2 := createTempFile(subdir2, "file2.", "")
+	tempfile2, _ := createTempFile(subdir2, "file2.", "")
 	defer tempfile2.Close()
 
-	tempfile3 := createTempFile(tempdir, "file3.", "")
+	tempfile3, tempfile3Basename := createTempFile(tempdir, "file3.", "")
 	defer tempfile3.Close()
 
-	fi, err := tempfile3.Stat()
-	if err != nil {
-		log.Fatal(err)
-	}
-	tempfile3Basename := fi.Name()
-
-	tempfile4Path := filepath.Join(subdir2, tempfile3Basename)
-	tempfile4, err := os.Create(tempfile4Path)
-	if err != nil {
-		log.Fatal(err)
-	}
+	tempfile4, _ := createTempFile(subdir2, tempfile3Basename, "")
 	defer tempfile4.Close()
 
-	tempfile5 := createTempFile(subdir3, "file5.", "")
+	tempfile5, _ := createTempFile(subdir3, "file5.", "")
 	defer tempfile5.Close()
 
 	t.Run("Test find dupes", func(t *testing.T) {
@@ -167,13 +94,13 @@ func TestTooManyFiles(t *testing.T) {
 		ints := makeRange(0, 20000)
 		for i := range ints {
 			i_str := strconv.Itoa(i)
-			t := createTempFile(tempdir, i_str, i_str)
+			t, _ := createTempFile(tempdir, i_str, i_str)
 			t.Close()
 		}
 		// create two temp files with the same contents
-		tempfile1 := createTempFile(tempdir, "f.", "foo")
+		tempfile1, _ := createTempFile(tempdir, "f.", "foo")
 		defer tempfile1.Close()
-		tempfile2 := createTempFile(tempdir, "f2.", "foo")
+		tempfile2, _ := createTempFile(tempdir, "f2.", "foo")
 		defer tempfile2.Close()
 
 		var skipDirs = []string{}
@@ -195,9 +122,9 @@ func TestPermissionsError(t *testing.T) {
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
 
 	// create two temp files with the same contents
-	tempfile1 := createTempFile(tempdir, "f.", "foo")
+	tempfile1, _ := createTempFile(tempdir, "f.", "foo")
 	defer tempfile1.Close()
-	tempfile2 := createTempFile(tempdir, "f2.", "foo")
+	tempfile2, _ := createTempFile(tempdir, "f2.", "foo")
 	defer tempfile2.Close()
 
 	// remove read permissions from one file
@@ -235,8 +162,8 @@ func TestPermissionsError(t *testing.T) {
 		createTempFile(subdir2, "f2.", "foo\n")
 
 		// add similar files in the parent dir
-		tempfile3 := createTempFile(subdir1, "f3.", "foo\n")
-		tempfile4 := createTempFile(subdir1, "f4.", "foo\n")
+		tempfile3, _ := createTempFile(subdir1, "f3.", "foo\n")
+		tempfile4, _ := createTempFile(subdir1, "f4.", "foo\n")
 
 		// remove read permissions from the directory file
 		err = os.Chmod(subdir2, 0000)

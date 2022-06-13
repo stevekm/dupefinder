@@ -7,54 +7,11 @@ import (
 	"path/filepath"
 )
 
-var logger = log.New(os.Stderr, "", 0)
-
-// basic file entry
-type FileEntry struct {
-	Path string
-	Name string // basename of the file
-	Size int64
-}
-
-// file entry with hash
-type FileHashEntry struct {
-	File FileEntry
-	Hash string
-}
-
-// method for creating a new FileEntry when we have only the filepath available
-func NewFileEntryFromPath(filepath string) FileEntry {
-	file, err := os.Open(filepath)
-	if err != nil {
-		log.Fatalf("error opening the path %v\n", err)
-	}
-	defer file.Close()
-
-	info, err := file.Stat()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	entry := FileEntry{
-		Path: filepath,
-		Name: info.Name(),
-		Size: info.Size(),
-	}
-
-	return entry
-}
 
 // walk the directory tree recursively to find all files
 // skip dirs that are in the skipDirs list
 func GetFiles(dirPath string, skipDirs []string) []FileEntry {
 	fileList := []FileEntry{}
-	// https://pkg.go.dev/path/filepath#Walk
-	// TODO: look into using https://pkg.go.dev/io/fs#WalkDirFunc , https://pkg.go.dev/path/filepath#WalkDir
-	// https://github.com/golang/go/issues/16399
-	// https://pkg.go.dev/io/fs#DirEntry
-	// NOTE: dont think WalkDir will save much time since I want the extra info anyway??
-	// https://pkg.go.dev/io/fs#FileInfo
-	// https://golang.hotexamples.com/examples/os/-/IsPermission/golang-ispermission-function-examples.html
 	err := filepath.Walk(dirPath, func(path string, info fs.FileInfo, err error) error {
 		// skip item that cannot be read
 		if os.IsPermission(err) {

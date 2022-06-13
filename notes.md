@@ -38,3 +38,13 @@ Tasks:
 - from list of all files, find matches based on:
   - same basename (same file in two dirs)
     - compare sizes
+
+
+------
+// https://pkg.go.dev/path/filepath#Walk
+// TODO: look into using https://pkg.go.dev/io/fs#WalkDirFunc , https://pkg.go.dev/path/filepath#WalkDir
+// https://github.com/golang/go/issues/16399
+// https://pkg.go.dev/io/fs#DirEntry
+// NOTE: dont think WalkDir will save much time since I want the extra info anyway??
+// https://pkg.go.dev/io/fs#FileInfo
+// https://golang.hotexamples.com/examples/os/-/IsPermission/golang-ispermission-function-examples.html
