@@ -48,3 +48,11 @@ Tasks:
 // NOTE: dont think WalkDir will save much time since I want the extra info anyway??
 // https://pkg.go.dev/io/fs#FileInfo
 // https://golang.hotexamples.com/examples/os/-/IsPermission/golang-ispermission-function-examples.html
+
+
+```
+taskpolicy -c maintenance ./dupefinder ~  1711.26s user 295.65s system 297% cpu 11:14.17 total
+taskpolicy -c utility ./dupefinder ~  658.90s user 77.88s system 244% cpu 5:00.82 total
+taskpolicy -c background ./dupefinder ~  1767.52s user 306.70s system 319% cpu 10:49.35 total
+./dupefinder ~  661.37s user 66.03s system 258% cpu 4:41.27 total
+```

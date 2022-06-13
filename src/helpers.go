@@ -81,6 +81,27 @@ func createTempFilesDirs1 (tempdir string) ([]string, []*os.File) {
 	return tempDirs, tempFiles
 }
 
+func createLargeFile(tempdir string, size int64) (*os.File, os.FileInfo) {
+	// for _, v := range []int64{3e8, 4e8, 1e8, 1e7, 4e5, 8e4,3e8, 4e8,} {
+	// 	tempfile, info := createLargeFile(tempdir, v)
+	// 	fileEntries = append(fileEntries, FileEntry{Path: tempfile.Name(), Size: info.Size(), Name: info.Name()})
+	// }
+	tempfile, err := os.CreateTemp(tempdir, "fooo.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := tempfile.Truncate(size); err != nil {
+		log.Fatal(err)
+	}
+
+	info, err := tempfile.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return tempfile, info
+}
+
 // generate a list of numbers
 func makeRange(min, max int) []int {
 	a := make([]int, max-min+1)
