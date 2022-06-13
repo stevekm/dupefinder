@@ -32,7 +32,8 @@ func TestFinder(t *testing.T) {
 	t.Run("Test find dupes", func(t *testing.T) {
 		tempDirs, tempFiles := createTempFilesDirs1(tempdir)
 		var skipDirs = []string{tempDirs[2]}
-		got := FindDupes(tempdir, skipDirs)
+		hashConfig := HashConfig{2}
+		got := FindDupes(tempdir, skipDirs, hashConfig)
 		wantHash := "d41d8cd98f00b204e9800998ecf8427e"
 		want := map[string][]FileHashEntry{
 			wantHash: []FileHashEntry{
@@ -91,7 +92,8 @@ func TestTooManyFiles(t *testing.T) {
 		defer tempfile2.Close()
 
 		var skipDirs = []string{}
-		got := FindDupes(tempdir, skipDirs)
+		hashConfig := HashConfig{2}
+		got := FindDupes(tempdir, skipDirs, hashConfig)
 		want := map[string][]FileHashEntry{
 			"acbd18db4cc2f85cedef654fccc4a4d8": []FileHashEntry{
 				NewFileHashEntry(NewFileEntryFromPath(tempfile1.Name())),
@@ -122,7 +124,8 @@ func TestPermissionsError(t *testing.T) {
 
 	t.Run("Find dupes while avoiding files with permissions errors", func(t *testing.T) {
 		var skipDirs = []string{}
-		got := FindDupes(tempdir, skipDirs)
+		hashConfig := HashConfig{2}
+		got := FindDupes(tempdir, skipDirs, hashConfig)
 		want := map[string][]FileHashEntry{}
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
@@ -159,7 +162,8 @@ func TestPermissionsError(t *testing.T) {
 		}
 
 		var skipDirs = []string{}
-		got := FindDupes(subdir1, skipDirs)
+		hashConfig := HashConfig{2}
+		got := FindDupes(subdir1, skipDirs, hashConfig)
 		want := map[string][]FileHashEntry{
 			"d3b07384d113edec49eaa6238ad5ff00": []FileHashEntry{
 				NewFileHashEntry(NewFileEntryFromPath(tempfile3.Name())),
@@ -240,29 +244,6 @@ func TestLargeFileHandling(t *testing.T) {
 			allResults = append(allResults, result)
 		}
 		log.Printf("allResults: %v\n", allResults)
-
-		// var wg sync.WaitGroup
-		// for i, entry := range fileEntries {
-		// 	wg.Add(1)
-		// 	i := i
-		// 	entry := entry
-		// 	go func(){
-		// 		defer wg.Done()
-		// 		fileHashEntry := NewFileHashEntry(entry)
-		// 		log.Printf(" %v %v\n", i, fileHashEntry)
-		// 		result <- fileHashEntry
-		// 		// time.Sleep(3 * time.Second)
-		// 	}()
-		// }
-		// wg.Wait()
-		// close(result)
-		//
-		// allResults := []FileHashEntry{}
-		// for res := range result {
-		// 	allResults = append(allResults, res)
-		// }
-		//
-		// log.Printf("allResults: %v\n", allResults)
 
 	})
 }

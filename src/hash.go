@@ -10,7 +10,10 @@ import (
 	"sync"
 )
 
-var numWorkers int = 4
+// var numWorkers int = 4
+type HashConfig struct {
+	NumWorkers int
+}
 
 type HashResult struct {
 	Entry FileHashEntry
@@ -49,17 +52,17 @@ func GetFileHash(fileEntry FileEntry) (FileHashEntry, error) {
 }
 
 // find files that have the same hash value
-func FindHashDupes(fileMap map[int64][]FileEntry) map[string][]FileHashEntry {
+func FindHashDupes(fileMap map[int64][]FileEntry, hashConfig HashConfig) map[string][]FileHashEntry {
 	hashesMap := map[string][]FileHashEntry{}
 
 	// set up for concurrent parallel processing of file hashing
 	// https://stackoverflow.com/questions/71458290/how-to-batch-dealing-with-files-using-goroutine/71458664#71458664
-	runtime.GOMAXPROCS(numWorkers)
+	runtime.GOMAXPROCS(hashConfig.NumWorkers)
 	work := make(chan FileEntry)
 	results := make(chan HashResult)
 	// create worker goroutines
 	wg := sync.WaitGroup{}
-	for i := 0; i < numWorkers; i++ {
+	for i := 0; i < hashConfig.NumWorkers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

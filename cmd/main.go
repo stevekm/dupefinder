@@ -11,21 +11,23 @@ type CLI struct {
 	InputDir   string `help:"path to input file to search" arg:""`
 	IgnoreFile string `help:"path to file of dir paths to ignore"`
 	PrintSize  bool   `help:"print the file size"`
+	Parallel int `help:"number of items to process in parallel" default:"2"`
 }
 
 func (cli *CLI) Run() error {
-	err := run(cli.InputDir, cli.IgnoreFile, cli.PrintSize)
+	err := run(cli.InputDir, cli.IgnoreFile, cli.PrintSize, cli.Parallel)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	return nil
 }
 
-func run(inputDir string, ignoreFile string, printSize bool) error {
+func run(inputDir string, ignoreFile string, printSize bool, numWorkers int) error {
 	// ignoreFile goes here
+	hashConfig := finder.HashConfig{NumWorkers: numWorkers}
 	formatConfig := finder.FormatConfig{Size: printSize}
 	var skipDirs = []string{}
-	dupes := finder.FindDupes(inputDir, skipDirs)
+	dupes := finder.FindDupes(inputDir, skipDirs, hashConfig)
 	for _, entries := range dupes {
 		format := finder.DupesFormatter(entries, formatConfig)
 		fmt.Printf("%s", format) // format has newline embedded at the end
