@@ -49,10 +49,11 @@ CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
 $(CONDASH):
 	wget "$(CONDAURL)"
 
+# rm -f "$(CONDASH)"
 conda: $(CONDASH)
 	@set +e
 	bash "$(CONDASH)" -b -p conda
-	rm -f "$(CONDASH)"
+
 
 # https://go.dev/dl/
 go1.18.3.darwin-amd64.tar.gz:
