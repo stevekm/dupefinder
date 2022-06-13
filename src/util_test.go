@@ -25,40 +25,17 @@ func skipDirTest(t *testing.T) {
 func TestFinder(t *testing.T) {
 	// set up temp dirs for tests
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
-	subdir1 := createSubDir(tempdir, "subdir.1")
-	subdir2 := createSubDir(tempdir, "subdir.2")
-	subdir3 := createSubDir(tempdir, "subdir.3")
-
-	// set up tempfiles for the test
-	// tempfile1 has unique contents
-	// tempfile2 and tempfile3 have different names but same contents (empty)
-	// tempfile3 and tempfile4 have same names and same contents (empty) but different directories
-	// tempfile5 is in the subdir to skip and has same size as tempfile2, tempfile3
-
-	tempfile1, _ := createTempFile(subdir1, "file1.", "writes\n")
-	defer tempfile1.Close()
-
-	tempfile2, _ := createTempFile(subdir2, "file2.", "")
-	defer tempfile2.Close()
-
-	tempfile3, tempfile3Basename := createTempFile(tempdir, "file3.", "")
-	defer tempfile3.Close()
-
-	tempfile4, _ := createTempFile(subdir2, tempfile3Basename, "")
-	defer tempfile4.Close()
-
-	tempfile5, _ := createTempFile(subdir3, "file5.", "")
-	defer tempfile5.Close()
 
 	t.Run("Test find dupes", func(t *testing.T) {
-		var skipDirs = []string{subdir3}
+		tempDirs, tempFiles := createTempFilesDirs1(tempdir)
+		var skipDirs = []string{tempDirs[2]}
 		got := FindDupes(tempdir, skipDirs)
 		wantHash := "d41d8cd98f00b204e9800998ecf8427e"
-		want := map[string][]FileEntry{
-			wantHash: []FileEntry{
-				NewFileEntryFromPath(tempfile3.Name()),
-				NewFileEntryFromPath(tempfile2.Name()),
-				NewFileEntryFromPath(tempfile4.Name()),
+		want := map[string][]FileHashEntry{
+			wantHash: []FileHashEntry{
+				NewFileHashEntry(NewFileEntryFromPath(tempFiles[2].Name())),
+				NewFileHashEntry(NewFileEntryFromPath(tempFiles[1].Name())),
+				NewFileHashEntry(NewFileEntryFromPath(tempFiles[3].Name())),
 			},
 		}
 		// test that we found the expected duplicate files
@@ -69,10 +46,10 @@ func TestFinder(t *testing.T) {
 
 		// test that the console formatter prints them in the expected format
 		config := FormatConfig{Size: false}
-		gotFormat := DupesFormatter(wantHash, got[wantHash], config)
+		gotFormat := DupesFormatter(got[wantHash], config)
 		var wantFormat string
 		for _, entry := range want[wantHash] {
-			wantFormat += wantHash + "\t" + entry.Path + "\n"
+			wantFormat += wantHash + "\t" + entry.File.Path + "\n"
 		}
 
 		if diff := cmp.Diff(wantFormat, gotFormat); diff != "" {
@@ -87,7 +64,7 @@ func TestTooManyFiles(t *testing.T) {
 	skipDirTest(t)
 
 	// setup test dirs & files
-	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
+	tempdir := t.TempDir()
 
 	t.Run("Find dupes without exceeding the limit on number of open files", func(t *testing.T) {
 		// make a large number of temp files, each with different contents
@@ -105,10 +82,10 @@ func TestTooManyFiles(t *testing.T) {
 
 		var skipDirs = []string{}
 		got := FindDupes(tempdir, skipDirs)
-		want := map[string][]string{
-			"acbd18db4cc2f85cedef654fccc4a4d8": []string{
-				tempfile1.Name(),
-				tempfile2.Name(),
+		want := map[string][]FileHashEntry{
+			"acbd18db4cc2f85cedef654fccc4a4d8": []FileHashEntry{
+				NewFileHashEntry(NewFileEntryFromPath(tempfile1.Name())),
+				NewFileHashEntry(NewFileEntryFromPath(tempfile2.Name())),
 			},
 		}
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -136,7 +113,7 @@ func TestPermissionsError(t *testing.T) {
 	t.Run("Find dupes while avoiding files with permissions errors", func(t *testing.T) {
 		var skipDirs = []string{}
 		got := FindDupes(tempdir, skipDirs)
-		want := map[string][]FileEntry{}
+		want := map[string][]FileHashEntry{}
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
@@ -173,10 +150,10 @@ func TestPermissionsError(t *testing.T) {
 
 		var skipDirs = []string{}
 		got := FindDupes(subdir1, skipDirs)
-		want := map[string][]FileEntry{
-			"d3b07384d113edec49eaa6238ad5ff00": []FileEntry{
-				NewFileEntryFromPath(tempfile3.Name()),
-				NewFileEntryFromPath(tempfile4.Name()),
+		want := map[string][]FileHashEntry{
+			"d3b07384d113edec49eaa6238ad5ff00": []FileHashEntry{
+				NewFileHashEntry(NewFileEntryFromPath(tempfile3.Name())),
+				NewFileHashEntry(NewFileEntryFromPath(tempfile4.Name())),
 			},
 		}
 		if diff := cmp.Diff(want, got); diff != "" {

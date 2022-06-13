@@ -9,14 +9,14 @@ type FormatConfig struct {
 }
 
 // convert a list of FileEntry to lines to be printed to console
-func DupesFormatter(hash string, dupes []FileEntry, config FormatConfig) string {
+func DupesFormatter(dupes []FileHashEntry, config FormatConfig) string {
 	var outputStr string
-	for _, v := range dupes {
+	for _, entry := range dupes {
 		var s string
 		if config.Size {
-			s = hash + "\t" + strconv.FormatInt(v.Size, 10) + "\t" + v.Path + "\n"
+			s = entry.Hash + "\t" + strconv.FormatInt(entry.File.Size, 10) + "\t" + entry.File.Path + "\n"
 		} else {
-			s = hash + "\t" + v.Path + "\n"
+			s = entry.Hash + "\t" + entry.File.Path + "\n"
 		}
 		outputStr += s
 	}

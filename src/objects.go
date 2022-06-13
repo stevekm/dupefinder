@@ -3,6 +3,7 @@ package finder
 import (
 	"os"
 	"log"
+	"io/fs"
 )
 
 // basic file entry
@@ -38,4 +39,24 @@ func NewFileEntryFromPath(filepath string) FileEntry {
 	}
 
 	return entry
+}
+
+// use this to create FileEntry if file info has already been called
+func NewFileEntryFromPathInfo(filepath string, fileinfo fs.FileInfo) FileEntry {
+	entry := FileEntry{
+		Path: filepath,
+		Name: fileinfo.Name(),
+		Size: fileinfo.Size(),
+	}
+
+	return entry
+}
+
+
+func NewFileHashEntry (fileEntry FileEntry) FileHashEntry {
+	fileHashEntry, err := GetFileHash(fileEntry)
+	if err != nil {
+		log.Fatalf("Could not convert FileEntry to FileHashEntry %v\n", err)
+	}
+	return fileHashEntry
 }
