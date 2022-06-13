@@ -42,9 +42,16 @@ func TestFinder(t *testing.T) {
 			},
 		}
 		// test that we found the expected duplicate files
-		// NOTE: might need to revise this test to not depend on order of items in the list!
-		if diff := cmp.Diff(want, got); diff != "" {
-			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		if len(got) != len(want) {
+			t.Errorf("got %v is not the same as %v", got, want)
+		}
+		if len(got[wantHash]) != len(want[wantHash]) {
+			t.Errorf("got %v is not the same as %v", got, want)
+		}
+		for _, entry := range want[wantHash] {
+			if ! containsFileHashEntry(got[wantHash], entry) {
+				t.Errorf("%v not in list %v", entry, got[wantHash])
+			}
 		}
 
 		// test that the console formatter prints them in the expected format

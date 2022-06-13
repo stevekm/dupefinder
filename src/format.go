@@ -2,6 +2,7 @@ package finder
 
 import (
 	"strconv"
+	"sort"
 )
 
 type FormatConfig struct {
@@ -11,6 +12,7 @@ type FormatConfig struct {
 // convert a list of FileEntry to lines to be printed to console
 func DupesFormatter(dupes []FileHashEntry, config FormatConfig) string {
 	var outputStr string
+	lines := []string{}
 	for _, entry := range dupes {
 		var s string
 		if config.Size {
@@ -18,7 +20,11 @@ func DupesFormatter(dupes []FileHashEntry, config FormatConfig) string {
 		} else {
 			s = entry.Hash + "\t" + entry.File.Path + "\n"
 		}
-		outputStr += s
+		lines = append(lines, s)
+	}
+  sort.Strings(lines)
+	for _, line := range lines {
+		outputStr += line
 	}
 	return outputStr
 }

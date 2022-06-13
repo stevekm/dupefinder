@@ -18,6 +18,15 @@ func containsStr(s []string, e string) bool {
 	return false
 }
 
+func containsFileHashEntry(l []FileHashEntry, e FileHashEntry) bool {
+	for _, a := range l {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 // find all files in the directory tree and group them by file size
 func FindFilesSizes(dirPath string, skipDirs []string) (map[int64][]FileEntry, uint64) {
 	fileMap := map[int64][]FileEntry{}
