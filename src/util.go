@@ -1,27 +1,13 @@
 package finder
 
 import (
+	"io/fs"
 	"log"
 	"os"
-	"io"
 	"path/filepath"
-	"crypto/md5"
-	"encoding/hex"
-	"io/fs"
 )
 
 var logger = log.New(os.Stderr, "", 0)
-
-// get the md5 hash of an open file handle
-func getFileMD5(inputFile *os.File) string {
-	hash := md5.New()
-	if _, err := io.Copy(hash, inputFile); err != nil {
-		log.Fatal(err)
-	}
-	sum := hash.Sum(nil)
-	hashStr := hex.EncodeToString(sum[:])
-	return hashStr
-}
 
 // basic file entry
 type FileEntry struct {
@@ -37,7 +23,7 @@ type FileHashEntry struct {
 }
 
 // method for creating a new FileEntry when we have only the filepath available
-func NewFileEntryFromPath (filepath string) FileEntry {
+func NewFileEntryFromPath(filepath string) FileEntry {
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatalf("error opening the path %v\n", err)
@@ -50,10 +36,10 @@ func NewFileEntryFromPath (filepath string) FileEntry {
 	}
 
 	entry := FileEntry{
-				Path: filepath,
-				Name: info.Name(),
-				Size: info.Size(),
-			}
+		Path: filepath,
+		Name: info.Name(),
+		Size: info.Size(),
+	}
 
 	return entry
 }
@@ -121,7 +107,7 @@ func containsStr(s []string, e string) bool {
 }
 
 // group all files with the same size value
-func GroupBySize (fileList []FileEntry) map[int64][]FileEntry {
+func GroupBySize(fileList []FileEntry) map[int64][]FileEntry {
 	sizes := map[int64][]FileEntry{}
 	for _, fileEntry := range fileList {
 		sizes[fileEntry.Size] = append(sizes[fileEntry.Size], fileEntry)
@@ -130,7 +116,7 @@ func GroupBySize (fileList []FileEntry) map[int64][]FileEntry {
 }
 
 // find size values that have multiple associated files
-func FindSizeDupes (fileList []FileEntry) []FileEntry {
+func FindSizeDupes(fileList []FileEntry) []FileEntry {
 	sizeMap := GroupBySize(fileList)
 	sizeDupesList := []FileEntry{}
 	for _, v := range sizeMap {
@@ -144,7 +130,7 @@ func FindSizeDupes (fileList []FileEntry) []FileEntry {
 }
 
 // arrange file list into groupings based on hash value
-func GroupByHash (fileList []FileEntry) map[string][]FileEntry {
+func GroupByHash(fileList []FileEntry) map[string][]FileEntry {
 	hashMap := map[string][]FileEntry{}
 	for _, entry := range fileList {
 		file, err := os.Open(entry.Path)
@@ -166,7 +152,7 @@ func GroupByHash (fileList []FileEntry) map[string][]FileEntry {
 }
 
 // handle the file opening and closing in order to get the file hash
-func GetFileHash (fileEntry FileEntry) (FileHashEntry, error) {
+func GetFileHash(fileEntry FileEntry) (FileHashEntry, error) {
 	file, err := os.Open(fileEntry.Path)
 	// if file read permission is denied, skip this file
 	if os.IsPermission(err) {
@@ -186,7 +172,7 @@ func GetFileHash (fileEntry FileEntry) (FileHashEntry, error) {
 }
 
 // get all hashes for all files in the list
-func GetFilesHashes (fileList []FileEntry) []FileHashEntry {
+func GetFilesHashes(fileList []FileEntry) []FileHashEntry {
 	fileHashes := []FileHashEntry{}
 	for _, entry := range fileList {
 		fileHashEntry, err := GetFileHash(entry)
@@ -200,7 +186,7 @@ func GetFilesHashes (fileList []FileEntry) []FileHashEntry {
 }
 
 // find files that have the same hash value
-func FindHashDupes (fileList []FileEntry) map[string][]FileEntry {
+func FindHashDupes(fileList []FileEntry) map[string][]FileEntry {
 	hashMap := GroupByHash(fileList)
 	hashDupes := map[string][]FileEntry{}
 	for hash, entries := range hashMap {

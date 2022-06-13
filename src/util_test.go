@@ -2,24 +2,24 @@ package finder
 
 import (
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"log"
-	"testing"
 	"os"
 	"path/filepath"
 	"strconv"
-	"github.com/google/go-cmp/cmp"
+	"testing"
 )
 
 // $ DIR_TEST=True make test
-func skipDirTest(t *testing.T){
+func skipDirTest(t *testing.T) {
 	var dirTestVar = os.Getenv("DIR_TEST")
 	var runDirTest bool
 	if dirTestVar != "" {
 		runDirTest = true
 	}
-	if ! runDirTest {
-    t.Skip(">>> Skipping dir test")
-  }
+	if !runDirTest {
+		t.Skip(">>> Skipping dir test")
+	}
 }
 
 // create a temp file in a dir and write something to its contents
@@ -53,14 +53,12 @@ func createTempFile(tempdir string, filename string, contents string) *os.File {
 func makeRange(min, max int) []int {
 	a := make([]int, max-min+1)
 	for i := range a {
-			a[i] = min + i
-		}
+		a[i] = min + i
+	}
 	return a
 }
 
-
-
-func TestUtil(t *testing.T){
+func TestUtil(t *testing.T) {
 	// setup test dirs & files
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
 	tempfile1 := createTempFile(tempdir, "f.", "writes\n")
@@ -74,12 +72,6 @@ func TestUtil(t *testing.T){
 	})
 
 }
-
-
-
-
-
-
 
 func TestFinder(t *testing.T) {
 	// set up temp dirs for tests
@@ -163,9 +155,7 @@ func TestFinder(t *testing.T) {
 	})
 }
 
-
-
-func TestTooManyFiles(t *testing.T){
+func TestTooManyFiles(t *testing.T) {
 	// only run this test if DIR_TEST env var was enabled because it creates a lot of files
 	skipDirTest(t)
 
@@ -200,8 +190,7 @@ func TestTooManyFiles(t *testing.T){
 	})
 }
 
-
-func TestPermissionsError(t *testing.T){
+func TestPermissionsError(t *testing.T) {
 	// setup test dirs & files
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
 
