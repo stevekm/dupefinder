@@ -15,7 +15,7 @@ type CLI struct {
 	Parallel   int    `help:"number of items to process in parallel" default:"2"`
 	Profile    bool   `help:"enable profiling"`
 	HashBytes int64 `help:"number of bytes to hash for each duplicated file; example: 500000 = 500KB, 1000000 = 1MB"`
-	Algo string `help:"hashing algorithm to use. Options: md5, sha1, sha256" default:"md5"`
+	Algo string `help:"hashing algorithm to use. Options: md5, sha1, sha256, xxhash" default:"md5"`
 }
 
 func (cli *CLI) Run() error {

@@ -10,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"github.com/cespare/xxhash" //https://pkg.go.dev/github.com/cespare/xxhash#section-readme
 )
 
 // var numWorkers int = 4
@@ -26,6 +27,7 @@ type HashResult struct {
 }
 
 // get the md5 hash of an open file handle
+// https://stackoverflow.com/questions/1761607/what-is-the-fastest-hash-algorithm-to-check-if-two-files-are-equal
 func getFileMD5(inputFile *os.File, config HashConfig) string {
 	algo := config.Algo
 	if algo == "" {
@@ -40,6 +42,8 @@ func getFileMD5(inputFile *os.File, config HashConfig) string {
 		hashWriter = sha1.New()
 	case algo == "sha256":
 		hashWriter = sha256.New()
+	case algo == "xxhash":
+		hashWriter = xxhash.New()
 	default:
 		hashWriter = md5.New()
 	}
