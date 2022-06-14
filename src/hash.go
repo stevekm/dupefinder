@@ -1,7 +1,10 @@
 package finder
 
 import (
+	"hash"
 	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"io"
 	"os"
@@ -14,6 +17,7 @@ type HashConfig struct {
 	NumWorkers int
 	NumBytes int64
 	Partial bool
+	Algo string
 }
 
 type HashResult struct {
@@ -23,11 +27,26 @@ type HashResult struct {
 
 // get the md5 hash of an open file handle
 func getFileMD5(inputFile *os.File, config HashConfig) string {
-	hash := md5.New()
+	algo := config.Algo
+	if algo == "" {
+		algo = "md5"
+	}
+
+	var hashWriter hash.Hash
+	switch {
+	case algo == "md5":
+		hashWriter = md5.New()
+	case algo == "sha1":
+		hashWriter = sha1.New()
+	case algo == "sha256":
+		hashWriter = sha256.New()
+	default:
+		hashWriter = md5.New()
+	}
 
 	// optionally hash only part of the file
 	if (config.Partial) && (config.NumBytes > 0) {
-		numBytesCopied, err := io.CopyN(hash, inputFile, config.NumBytes)
+		numBytesCopied, err := io.CopyN(hashWriter, inputFile, config.NumBytes)
 		if err != nil {
 			// if we are hashing n bytes then a lot of files will be too small so handle EOF
 			if err == io.EOF {
@@ -39,13 +58,13 @@ func getFileMD5(inputFile *os.File, config HashConfig) string {
 		}
 
 	} else {
-		_, err := io.Copy(hash, inputFile)
+		_, err := io.Copy(hashWriter, inputFile)
 		if err != nil {
 			logger.Fatalf("Error encountered while hashing file: %v\n", err)
 		}
 	}
 
-	sum := hash.Sum(nil)
+	sum := hashWriter.Sum(nil)
 	hashStr := hex.EncodeToString(sum[:])
 	return hashStr
 }

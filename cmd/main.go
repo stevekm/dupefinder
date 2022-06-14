@@ -15,10 +15,18 @@ type CLI struct {
 	Parallel   int    `help:"number of items to process in parallel" default:"2"`
 	Profile    bool   `help:"enable profiling"`
 	HashBytes int64 `help:"number of bytes to hash for each duplicated file; example: 500000 = 500KB, 1000000 = 1MB"`
+	Algo string `help:"hashing algorithm to use. Options: md5, sha1, sha256" default:"md5"`
 }
 
 func (cli *CLI) Run() error {
-	err := run(cli.InputDir, cli.IgnoreFile, cli.PrintSize, cli.Parallel, cli.Profile, cli.HashBytes)
+	err := run(
+			cli.InputDir,
+			cli.IgnoreFile,
+			cli.PrintSize,
+			cli.Parallel,
+			cli.Profile,
+			cli.HashBytes,
+			cli.Algo)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -31,7 +39,8 @@ func run(
 	printSize bool,
 	numWorkers int,
 	enableProfile bool,
-	hashBytes int64) error {
+	hashBytes int64,
+	algo string) error {
 
 	if enableProfile {
 		cpuFile, memFile := finder.StartProfiler()
@@ -42,7 +51,7 @@ func run(
 
 	// ignoreFile goes here
 	var skipDirs = []string{}
-	hashConfig := finder.HashConfig{NumWorkers: numWorkers}
+	hashConfig := finder.HashConfig{NumWorkers: numWorkers, Algo: algo}
 	if hashBytes > 0 {
 		hashConfig.Partial = true
 		hashConfig.NumBytes = hashBytes

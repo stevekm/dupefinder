@@ -22,6 +22,36 @@ func TestHash(t *testing.T) {
 
 }
 
+func TestHashSHA1(t *testing.T) {
+	// setup test dirs & files
+	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
+	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
+
+	t.Run("Get sha1 hash", func(t *testing.T) {
+		hashConfig := HashConfig{Algo:"sha1"}
+		got := getFileMD5(tempfile1, hashConfig)
+		want := "67503a007b3829965fde57d51768bdb32bb0389f"
+		if got != want {
+			t.Errorf("got %v is not the same as %v", got, want)
+		}
+	})
+}
+
+func TestHashSHA256(t *testing.T) {
+	// setup test dirs & files
+	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
+	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
+
+	t.Run("Get sha1 hash", func(t *testing.T) {
+		hashConfig := HashConfig{Algo:"sha256"}
+		got := getFileMD5(tempfile1, hashConfig)
+		want := "fd6e46528c86f5f2a43aa9f013bf64fcc6939606e077bf3a4b14ef09fcb46f59"
+		if got != want {
+			t.Errorf("got %v is not the same as %v", got, want)
+		}
+	})
+}
+
 
 func TestHashN(t *testing.T) {
 	tempdir := t.TempDir()
