@@ -1,24 +1,24 @@
 package finder
 
 import (
-	"hash"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
+	"github.com/cespare/xxhash" //https://pkg.go.dev/github.com/cespare/xxhash#section-readme
+	"hash"
 	"io"
 	"os"
 	"runtime"
 	"sync"
-	"github.com/cespare/xxhash" //https://pkg.go.dev/github.com/cespare/xxhash#section-readme
 )
 
 // var numWorkers int = 4
 type HashConfig struct {
 	NumWorkers int
-	NumBytes int64
-	Partial bool
-	Algo string
+	NumBytes   int64
+	Partial    bool
+	Algo       string
 }
 
 type HashResult struct {

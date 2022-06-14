@@ -32,7 +32,7 @@ func TestFinder(t *testing.T) {
 	t.Run("Test find dupes", func(t *testing.T) {
 		tempDirs, tempFiles := createTempFilesDirs1(tempdir)
 		var skipDirs = []string{tempDirs[2]}
-		hashConfig := HashConfig{NumWorkers:2}
+		hashConfig := HashConfig{NumWorkers: 2}
 		got := FindDupes(tempdir, skipDirs, hashConfig)
 		wantHash := "d41d8cd98f00b204e9800998ecf8427e"
 		want := map[string][]FileHashEntry{
@@ -92,7 +92,7 @@ func TestTooManyFiles(t *testing.T) {
 		defer tempfile2.Close()
 
 		var skipDirs = []string{}
-		hashConfig := HashConfig{NumWorkers:2}
+		hashConfig := HashConfig{NumWorkers: 2}
 		got := FindDupes(tempdir, skipDirs, hashConfig)
 		want := map[string][]FileHashEntry{
 			"acbd18db4cc2f85cedef654fccc4a4d8": []FileHashEntry{

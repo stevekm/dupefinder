@@ -1,9 +1,9 @@
 package finder
 
 import (
-	"testing"
 	"fmt"
 	"log"
+	"testing"
 )
 
 func TestHash(t *testing.T) {
@@ -28,7 +28,7 @@ func TestHashSHA1(t *testing.T) {
 	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
 
 	t.Run("Get sha1 hash", func(t *testing.T) {
-		hashConfig := HashConfig{Algo:"sha1"}
+		hashConfig := HashConfig{Algo: "sha1"}
 		got := getFileMD5(tempfile1, hashConfig)
 		want := "67503a007b3829965fde57d51768bdb32bb0389f"
 		if got != want {
@@ -43,7 +43,7 @@ func TestHashSHA256(t *testing.T) {
 	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
 
 	t.Run("Get sha256 hash", func(t *testing.T) {
-		hashConfig := HashConfig{Algo:"sha256"}
+		hashConfig := HashConfig{Algo: "sha256"}
 		got := getFileMD5(tempfile1, hashConfig)
 		want := "fd6e46528c86f5f2a43aa9f013bf64fcc6939606e077bf3a4b14ef09fcb46f59"
 		if got != want {
@@ -58,7 +58,7 @@ func TestHashXXHASH(t *testing.T) {
 	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
 
 	t.Run("Get xxhash hash", func(t *testing.T) {
-		hashConfig := HashConfig{Algo:"xxhash"}
+		hashConfig := HashConfig{Algo: "xxhash"}
 		got := getFileMD5(tempfile1, hashConfig)
 		want := "b59acf3d21a6a54a"
 		if got != want {
@@ -67,13 +67,12 @@ func TestHashXXHASH(t *testing.T) {
 	})
 }
 
-
 func TestHashN(t *testing.T) {
 	tempdir := t.TempDir()
 	tempfile, _ := createLargeFile(tempdir, 4e5)
 	// tempfileEntry := NewFileEntryFromPathInfo(tempfile.Name(), info)
 
-	t.Run("Hash only the file head", func(t *testing.T){
+	t.Run("Hash only the file head", func(t *testing.T) {
 		// hash the entire file
 		hashConfig := HashConfig{}
 		got := getFileMD5(tempfile, hashConfig)
