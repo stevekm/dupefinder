@@ -5,24 +5,39 @@ import (
 	"fmt"
 	"github.com/alecthomas/kong"
 	"log"
+	"runtime/pprof"
 )
 
 type CLI struct {
 	InputDir   string `help:"path to input file to search" arg:""`
 	IgnoreFile string `help:"path to file of dir paths to ignore"`
 	PrintSize  bool   `help:"print the file size"`
-	Parallel int `help:"number of items to process in parallel" default:"2"`
+	Parallel   int    `help:"number of items to process in parallel" default:"2"`
+	Profile    bool   `help:"enable profiling"`
 }
 
 func (cli *CLI) Run() error {
-	err := run(cli.InputDir, cli.IgnoreFile, cli.PrintSize, cli.Parallel)
+	err := run(cli.InputDir, cli.IgnoreFile, cli.PrintSize, cli.Parallel, cli.Profile)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	return nil
 }
 
-func run(inputDir string, ignoreFile string, printSize bool, numWorkers int) error {
+func run(
+	inputDir string,
+	ignoreFile string,
+	printSize bool,
+	numWorkers int,
+	enableProfile bool) error {
+
+	if enableProfile {
+		cpuFile, memFile := finder.StartProfiler()
+		defer cpuFile.Close()
+		defer memFile.Close()
+		defer pprof.StopCPUProfile()
+	}
+
 	// ignoreFile goes here
 	hashConfig := finder.HashConfig{NumWorkers: numWorkers}
 	formatConfig := finder.FormatConfig{Size: printSize}

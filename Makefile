@@ -7,6 +7,9 @@ SHELL:=/bin/bash
 # # # $ go get github.com/google/go-cmp
 # go run cmd/main.go .
 
+format:
+	gofmt -l -w .
+
 test:
 	set -euo pipefail
 	go clean -testcache && \

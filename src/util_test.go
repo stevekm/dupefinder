@@ -50,7 +50,7 @@ func TestFinder(t *testing.T) {
 			t.Errorf("got %v is not the same as %v", got, want)
 		}
 		for _, entry := range want[wantHash] {
-			if ! containsFileHashEntry(got[wantHash], entry) {
+			if !containsFileHashEntry(got[wantHash], entry) {
 				t.Errorf("%v not in list %v", entry, got[wantHash])
 			}
 		}

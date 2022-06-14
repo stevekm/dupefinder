@@ -1,8 +1,8 @@
 package finder
 
 import (
-	"strconv"
 	"sort"
+	"strconv"
 )
 
 type FormatConfig struct {
@@ -22,7 +22,7 @@ func DupesFormatter(dupes []FileHashEntry, config FormatConfig) string {
 		}
 		lines = append(lines, s)
 	}
-  sort.Strings(lines)
+	sort.Strings(lines)
 	for _, line := range lines {
 		outputStr += line
 	}
