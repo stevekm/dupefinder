@@ -14,10 +14,11 @@ type CLI struct {
 	PrintSize  bool   `help:"print the file size"`
 	Parallel   int    `help:"number of items to process in parallel" default:"2"`
 	Profile    bool   `help:"enable profiling"`
+	HashBytes int64 `help:"number of bytes to hash for each duplicated file; example: 500000 = 500KB, 1000000 = 1MB"`
 }
 
 func (cli *CLI) Run() error {
-	err := run(cli.InputDir, cli.IgnoreFile, cli.PrintSize, cli.Parallel, cli.Profile)
+	err := run(cli.InputDir, cli.IgnoreFile, cli.PrintSize, cli.Parallel, cli.Profile, cli.HashBytes)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -29,7 +30,8 @@ func run(
 	ignoreFile string,
 	printSize bool,
 	numWorkers int,
-	enableProfile bool) error {
+	enableProfile bool,
+	hashBytes int64) error {
 
 	if enableProfile {
 		cpuFile, memFile := finder.StartProfiler()
@@ -39,9 +41,15 @@ func run(
 	}
 
 	// ignoreFile goes here
-	hashConfig := finder.HashConfig{NumWorkers: numWorkers}
-	formatConfig := finder.FormatConfig{Size: printSize}
 	var skipDirs = []string{}
+	hashConfig := finder.HashConfig{NumWorkers: numWorkers}
+	if hashBytes > 0 {
+		hashConfig.Partial = true
+		hashConfig.NumBytes = hashBytes
+	}
+
+	formatConfig := finder.FormatConfig{Size: printSize}
+
 	dupes := finder.FindDupes(inputDir, skipDirs, hashConfig)
 	for _, entries := range dupes {
 		format := finder.DupesFormatter(entries, formatConfig)

@@ -32,14 +32,14 @@ func TestFinder(t *testing.T) {
 	t.Run("Test find dupes", func(t *testing.T) {
 		tempDirs, tempFiles := createTempFilesDirs1(tempdir)
 		var skipDirs = []string{tempDirs[2]}
-		hashConfig := HashConfig{2}
+		hashConfig := HashConfig{NumWorkers:2}
 		got := FindDupes(tempdir, skipDirs, hashConfig)
 		wantHash := "d41d8cd98f00b204e9800998ecf8427e"
 		want := map[string][]FileHashEntry{
 			wantHash: []FileHashEntry{
-				NewFileHashEntry(NewFileEntryFromPath(tempFiles[2].Name())),
-				NewFileHashEntry(NewFileEntryFromPath(tempFiles[1].Name())),
-				NewFileHashEntry(NewFileEntryFromPath(tempFiles[3].Name())),
+				NewFileHashEntry(NewFileEntryFromPath(tempFiles[2].Name()), hashConfig),
+				NewFileHashEntry(NewFileEntryFromPath(tempFiles[1].Name()), hashConfig),
+				NewFileHashEntry(NewFileEntryFromPath(tempFiles[3].Name()), hashConfig),
 			},
 		}
 		// test that we found the expected duplicate files
@@ -92,12 +92,12 @@ func TestTooManyFiles(t *testing.T) {
 		defer tempfile2.Close()
 
 		var skipDirs = []string{}
-		hashConfig := HashConfig{2}
+		hashConfig := HashConfig{NumWorkers:2}
 		got := FindDupes(tempdir, skipDirs, hashConfig)
 		want := map[string][]FileHashEntry{
 			"acbd18db4cc2f85cedef654fccc4a4d8": []FileHashEntry{
-				NewFileHashEntry(NewFileEntryFromPath(tempfile1.Name())),
-				NewFileHashEntry(NewFileEntryFromPath(tempfile2.Name())),
+				NewFileHashEntry(NewFileEntryFromPath(tempfile1.Name()), hashConfig),
+				NewFileHashEntry(NewFileEntryFromPath(tempfile2.Name()), hashConfig),
 			},
 		}
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -124,7 +124,7 @@ func TestPermissionsError(t *testing.T) {
 
 	t.Run("Find dupes while avoiding files with permissions errors", func(t *testing.T) {
 		var skipDirs = []string{}
-		hashConfig := HashConfig{2}
+		hashConfig := HashConfig{NumWorkers: 2}
 		got := FindDupes(tempdir, skipDirs, hashConfig)
 		want := map[string][]FileHashEntry{}
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -162,12 +162,12 @@ func TestPermissionsError(t *testing.T) {
 		}
 
 		var skipDirs = []string{}
-		hashConfig := HashConfig{2}
+		hashConfig := HashConfig{NumWorkers: 2}
 		got := FindDupes(subdir1, skipDirs, hashConfig)
 		want := map[string][]FileHashEntry{
 			"d3b07384d113edec49eaa6238ad5ff00": []FileHashEntry{
-				NewFileHashEntry(NewFileEntryFromPath(tempfile3.Name())),
-				NewFileHashEntry(NewFileEntryFromPath(tempfile4.Name())),
+				NewFileHashEntry(NewFileEntryFromPath(tempfile3.Name()), hashConfig),
+				NewFileHashEntry(NewFileEntryFromPath(tempfile4.Name()), hashConfig),
 			},
 		}
 		if diff := cmp.Diff(want, got); diff != "" {
@@ -209,7 +209,7 @@ func TestLargeFileHandling(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				for entry := range work {
-					fileHashEntry := NewFileHashEntry(entry)
+					fileHashEntry := NewFileHashEntry(entry, HashConfig{})
 					log.Printf("%v\n", fileHashEntry)
 					results <- fileHashEntry
 				}

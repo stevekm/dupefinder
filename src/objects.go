@@ -52,8 +52,8 @@ func NewFileEntryFromPathInfo(filepath string, fileinfo fs.FileInfo) FileEntry {
 	return entry
 }
 
-func NewFileHashEntry(fileEntry FileEntry) FileHashEntry {
-	fileHashEntry, err := GetFileHash(fileEntry)
+func NewFileHashEntry(fileEntry FileEntry, hashConfig HashConfig) FileHashEntry {
+	fileHashEntry, err := GetFileHash(fileEntry, hashConfig)
 	if err != nil {
 		log.Fatalf("Could not convert FileEntry to FileHashEntry %v\n", err)
 	}
