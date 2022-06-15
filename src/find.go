@@ -7,6 +7,11 @@ import (
 	"path/filepath"
 )
 
+type FindConfig struct {
+	MinSize int64
+	SkipDirs []string
+}
+
 // check if a slice contains a specific string
 // TODO: update to Go 1.18 so we dont have to do this anymore
 func containsStr(s []string, e string) bool {
@@ -28,7 +33,7 @@ func containsFileHashEntry(l []FileHashEntry, e FileHashEntry) bool {
 }
 
 // find all files in the directory tree and group them by file size
-func FindFilesSizes(dirPath string, skipDirs []string) (map[int64][]FileEntry, uint64) {
+func FindFilesSizes(dirPath string, config FindConfig) (map[int64][]FileEntry, uint64) {
 	fileMap := map[int64][]FileEntry{}
 	var numFiles uint64
 
@@ -45,8 +50,8 @@ func FindFilesSizes(dirPath string, skipDirs []string) (map[int64][]FileEntry, u
 		}
 		// skip some dirs
 		if info.IsDir() &&
-			containsStr(skipDirs, info.Name()) ||
-			containsStr(skipDirs, path) {
+			containsStr(config.SkipDirs, info.Name()) ||
+			containsStr(config.SkipDirs, path) {
 			logger.Printf("skipping a dir: %+v %v \n", info.Name(), path)
 			return filepath.SkipDir
 		}
@@ -71,8 +76,8 @@ func FindFilesSizes(dirPath string, skipDirs []string) (map[int64][]FileEntry, u
 // find all the duplicate files in the dir
 // Duplicates = same file size, same hash value
 // TODO: this might need to be broken up to aid garbage collection ??
-func FindDupes(dirPath string, skipDirs []string, hashConfig HashConfig) map[string][]FileHashEntry {
-	fileSizeMap, _ := FindFilesSizes(dirPath, skipDirs)
+func FindDupes(dirPath string, findConfig FindConfig, hashConfig HashConfig) map[string][]FileHashEntry {
+	fileSizeMap, _ := FindFilesSizes(dirPath, findConfig)
 	hashDupes := FindHashDupes(fileSizeMap, hashConfig)
 	return hashDupes
 }

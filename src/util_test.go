@@ -31,9 +31,9 @@ func TestFinder(t *testing.T) {
 
 	t.Run("Test find dupes", func(t *testing.T) {
 		tempDirs, tempFiles := createTempFilesDirs1(tempdir)
-		var skipDirs = []string{tempDirs[2]}
 		hashConfig := HashConfig{NumWorkers: 2}
-		got := FindDupes(tempdir, skipDirs, hashConfig)
+		findConfig := FindConfig{SkipDirs: []string{tempDirs[2]}}
+		got := FindDupes(tempdir, findConfig, hashConfig)
 		wantHash := "d41d8cd98f00b204e9800998ecf8427e"
 		want := map[string][]FileHashEntry{
 			wantHash: []FileHashEntry{
@@ -91,9 +91,10 @@ func TestTooManyFiles(t *testing.T) {
 		tempfile2, _ := createTempFile(tempdir, "f2.", "foo")
 		defer tempfile2.Close()
 
-		var skipDirs = []string{}
+		// var skipDirs = []string{}
 		hashConfig := HashConfig{NumWorkers: 2}
-		got := FindDupes(tempdir, skipDirs, hashConfig)
+		findConfig := FindConfig{SkipDirs: []string{}}
+		got := FindDupes(tempdir, findConfig, hashConfig)
 		want := map[string][]FileHashEntry{
 			"acbd18db4cc2f85cedef654fccc4a4d8": []FileHashEntry{
 				NewFileHashEntry(NewFileEntryFromPath(tempfile1.Name()), hashConfig),
@@ -123,9 +124,9 @@ func TestPermissionsError(t *testing.T) {
 	}
 
 	t.Run("Find dupes while avoiding files with permissions errors", func(t *testing.T) {
-		var skipDirs = []string{}
+		findConfig := FindConfig{SkipDirs: []string{}}
 		hashConfig := HashConfig{NumWorkers: 2}
-		got := FindDupes(tempdir, skipDirs, hashConfig)
+		got := FindDupes(tempdir, findConfig, hashConfig)
 		want := map[string][]FileHashEntry{}
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
@@ -161,9 +162,9 @@ func TestPermissionsError(t *testing.T) {
 			log.Fatal(err)
 		}
 
-		var skipDirs = []string{}
 		hashConfig := HashConfig{NumWorkers: 2}
-		got := FindDupes(subdir1, skipDirs, hashConfig)
+		findConfig := FindConfig{SkipDirs: []string{}}
+		got := FindDupes(subdir1, findConfig, hashConfig)
 		want := map[string][]FileHashEntry{
 			"d3b07384d113edec49eaa6238ad5ff00": []FileHashEntry{
 				NewFileHashEntry(NewFileEntryFromPath(tempfile3.Name()), hashConfig),

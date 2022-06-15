@@ -11,9 +11,8 @@ func TestFindAllFiles(t *testing.T) {
 
 	t.Run("Test find all files", func(t *testing.T) {
 		tempDirs, tempFiles := createTempFilesDirs1(tempdir)
-		var skipDirs = []string{tempDirs[2]}
-
-		gotFiles, gotNumFiles := FindFilesSizes(tempdir, skipDirs)
+		findConfig := FindConfig{SkipDirs: []string{tempDirs[2]}}
+		gotFiles, gotNumFiles := FindFilesSizes(tempdir, findConfig)
 
 		wantFiles := map[int64][]FileEntry{
 			0: []FileEntry{

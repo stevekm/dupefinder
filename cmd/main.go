@@ -49,8 +49,7 @@ func run(
 		defer pprof.StopCPUProfile()
 	}
 
-	// ignoreFile goes here
-	var skipDirs = []string{}
+	findConfig := finder.FindConfig{} // var skipDirs = []string{} // ignoreFile goes here
 	hashConfig := finder.HashConfig{NumWorkers: numWorkers, Algo: algo}
 	if hashBytes > 0 {
 		hashConfig.Partial = true
@@ -59,7 +58,7 @@ func run(
 
 	formatConfig := finder.FormatConfig{Size: printSize}
 
-	dupes := finder.FindDupes(inputDir, skipDirs, hashConfig)
+	dupes := finder.FindDupes(inputDir, findConfig, hashConfig)
 	for _, entries := range dupes {
 		format := finder.DupesFormatter(entries, formatConfig)
 		fmt.Printf("%s", format) // format has newline embedded at the end
