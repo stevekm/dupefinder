@@ -60,3 +60,6 @@ taskpolicy -c background ./dupefinder ~  1767.52s user 306.70s system 319% cpu 1
 -----
 https://stackoverflow.com/questions/35155119/how-to-optimize-golang-program-that-spends-most-time-in-runtime-osyield-and-runt
 https://stackoverflow.com/questions/55893087/what-would-cause-go-to-spend-so-much-time-in-runtime-pthread-cond-signal
+
+-----
+https://golangdocs.com/profiling-in-golang

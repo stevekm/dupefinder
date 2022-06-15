@@ -8,7 +8,7 @@ import (
 )
 
 type FindConfig struct {
-	MinSize int64
+	MinSize  int64
 	SkipDirs []string
 }
 
@@ -59,9 +59,11 @@ func FindFilesSizes(dirPath string, config FindConfig) (map[int64][]FileEntry, u
 		// if its a file then add it to the list
 		if info.Mode().IsRegular() {
 			size := info.Size()
-			fileEntry := NewFileEntryFromPathInfo(path, info)
-			fileMap[size] = append(fileMap[size], fileEntry)
-			numFiles += 1
+			if size >= config.MinSize {
+				fileEntry := NewFileEntryFromPathInfo(path, info)
+				fileMap[size] = append(fileMap[size], fileEntry)
+				numFiles += 1
+			}
 		}
 		return nil
 	})

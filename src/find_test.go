@@ -39,3 +39,30 @@ func TestFindAllFiles(t *testing.T) {
 
 	})
 }
+
+func TestSkipSmallFiles(t *testing.T) {
+	tempdir := t.TempDir()
+	t.Run("Test find all files", func(t *testing.T) {
+		_, tempFiles := createTempFilesDirs1(tempdir)
+		findConfig := FindConfig{MinSize: 5}
+		gotFiles, gotNumFiles := FindFilesSizes(tempdir, findConfig)
+
+		wantFiles := map[int64][]FileEntry{
+			7: []FileEntry{
+				NewFileEntryFromPath(tempFiles[0].Name()),
+			},
+		}
+
+		var wantNumFiles uint64 = 1
+
+		if diff := cmp.Diff(wantFiles, gotFiles); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+		if diff := cmp.Diff(wantNumFiles, gotNumFiles); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+	})
+
+}
