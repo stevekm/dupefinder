@@ -15,9 +15,11 @@ type CLI struct {
 	Parallel   int    `help:"number of items to process in parallel" default:"2"`
 	Profile    bool   `help:"enable profiling and outputs files for use with
 'go tool pprof cpu.prof'"`
-	HashBytes int64  `help:"number of bytes to hash for each duplicated file; example: 500000 = 500KB, 1000000 = 1MB"`
+	HashBytes int64  `help:"number of bytes to hash for each duplicated file; example: 1000 = 1KB, 1000000 = 1MB, 1000000000 = 1GB"`
 	Algo      string `help:"hashing algorithm to use. Options: md5, sha1, sha256, xxhash" default:"md5"`
-	MinSize   int64  `help:"only include files of minimum size (bytes) when searching"`
+	MinSize   int64  `help:"only include files of minimum size (bytes) or larger when searching"`
+	// NOTE: note sure how to get Kong to accept type of *int64 here for MaxSize;
+	MaxSize   int64  `help:"only include files of maximum size (bytes) or smaller when searching. Value must be >0, value of 0 = disabled" default:"0"`
 	Debug     bool   `help:"only used for dev debug purposes! Don't use this option it doesnt do anything"`
 }
 
@@ -31,6 +33,7 @@ func (cli *CLI) Run() error {
 		cli.HashBytes,
 		cli.Algo,
 		cli.MinSize,
+		cli.MaxSize,
 		cli.Debug,
 	)
 	if err != nil {
@@ -48,6 +51,7 @@ func run(
 	hashBytes int64,
 	algo string,
 	minSize int64,
+	maxSize int64,
 	debug bool,
 ) error {
 
@@ -59,6 +63,12 @@ func run(
 	}
 
 	findConfig := finder.FindConfig{MinSize: minSize} // var skipDirs = []string{} // ignoreFile goes here
+
+	// NOTE: note sure how to get Kong to accept type of *int64 here for MaxSize
+	if maxSize > 0 {
+		findConfig.MaxSize = &maxSize
+	}
+
 	hashConfig := finder.HashConfig{NumWorkers: numWorkers, Algo: algo}
 	if hashBytes > 0 {
 		hashConfig.Partial = true
