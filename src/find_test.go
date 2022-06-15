@@ -40,3 +40,48 @@ func TestFindAllFiles(t *testing.T) {
 
 	})
 }
+
+
+func TestFindSubdirs(t *testing.T){
+	tempdir := t.TempDir()
+
+	t.Run("Test find all files", func(t *testing.T) {
+		tempSubDirs, tempFiles := createTempFilesDirs1(tempdir)
+		createSubDir(tempSubDirs[0], "sub-subdir.1")
+		subSubDir2 := createSubDir(tempSubDirs[1], "sub-subdir.2")
+		createSubDir(subSubDir2, "sub-sub-subdir.1")
+		createTempFile(subSubDir2, "subSubDirFile.", "")
+		createTempFile(subSubDir2, "subSubDirFile.", "foo")
+
+		gotSubdirs, gotFiles := FindRootSubdirsFiles(tempdir)
+
+		wantSubdirs := []string{}
+		for _, item := range tempSubDirs {
+			wantSubdirs = append(wantSubdirs, item)
+		}
+
+
+		wantFiles := []FileEntry{
+			NewFileEntryFromPath(tempFiles[2].Name()),
+		}
+
+		if diff := cmp.Diff(wantFiles, gotFiles); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+		// if len(gotFiles) != len(wantFiles) {
+		// 	t.Errorf("got %v is not the same length as %v", gotFiles, wantFiles)
+		// }
+		//
+		// for _, entry := range wantFiles {
+		// 	if !containsFileEntry(gotFiles, entry) {
+		// 		t.Errorf("%v not in list %v", entry, gotFiles)
+		// 	}
+		// }
+
+		if diff := cmp.Diff(wantSubdirs, gotSubdirs); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+	})
+}

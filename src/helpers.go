@@ -7,6 +7,37 @@ import (
 	"path/filepath"
 )
 
+// check if a slice contains a specific string
+// TODO: update to Go 1.18 so we dont have to do this anymore
+func containsStr(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+
+func containsFileHashEntry(l []FileHashEntry, e FileHashEntry) bool {
+	for _, a := range l {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func containsFileEntry(l []FileEntry, e FileEntry) bool {
+	for _, a := range l {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+
 // create a temp file in a dir and write something to its contents
 func createTempFile(tempdir string, filename string, contents string) (*os.File, string) {
 	tempfile, err := os.CreateTemp(tempdir, filename)
