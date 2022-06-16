@@ -35,9 +35,12 @@ build-all:
 	done
 
 
+build-server:
+	go build -o ./server srv/server.go && chmod +x ./server
 
-
-
+# $ curl "http://localhost:1000/?foo"
+run-server:
+	go run srv/server.go
 
 
 # ~~~~~ Set up Benchmark dir ~~~~~ #
