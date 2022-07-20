@@ -18,6 +18,7 @@ type CLI struct {
 	HashBytes int64  `help:"number of bytes to hash for each duplicated file; example: 500000 = 500KB, 1000000 = 1MB"`
 	Algo      string `help:"hashing algorithm to use. Options: md5, sha1, sha256, xxhash" default:"md5"`
 	MinSize   int64  `help:"only include files of minimum size (bytes) when searching"`
+	SizeOnly bool `help:"only look for duplicates based on file size"`
 	Debug     bool   `help:"only used for dev debug purposes! Don't use this option it doesnt do anything"`
 }
 
@@ -31,6 +32,7 @@ func (cli *CLI) Run() error {
 		cli.HashBytes,
 		cli.Algo,
 		cli.MinSize,
+		cli.SizeOnly,
 		cli.Debug,
 	)
 	if err != nil {
@@ -48,6 +50,7 @@ func run(
 	hashBytes int64,
 	algo string,
 	minSize int64,
+	sizeOnly bool,
 	debug bool,
 ) error {
 
@@ -73,11 +76,21 @@ func run(
 		return nil
 	}
 
-	dupes := finder.FindDupes(inputDir, findConfig, hashConfig)
-	for _, entries := range dupes {
-		format := finder.DupesFormatter(entries, formatConfig)
-		fmt.Printf("%s", format) // format has newline embedded at the end
+	if sizeOnly {
+		fileSizeMap, _ := finder.FindFilesSizes(inputDir, findConfig)
+		sizeDupes := finder.FindSizeDupes(fileSizeMap)
+		for _, entries := range sizeDupes {
+			format := finder.FileEntryFormatter(entries)
+			fmt.Printf("%s", format)
+		}
+	} else {
+		dupes := finder.FindDupes(inputDir, findConfig, hashConfig)
+		for _, entries := range dupes {
+			format := finder.DupesFormatter(entries, formatConfig)
+			fmt.Printf("%s", format) // format has newline embedded at the end
+		}
 	}
+
 	return nil
 }
 

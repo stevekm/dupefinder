@@ -28,3 +28,18 @@ func DupesFormatter(dupes []FileHashEntry, config FormatConfig) string {
 	}
 	return outputStr
 }
+
+func FileEntryFormatter(dupes []FileEntry) string {
+	var outputStr string
+	lines := []string{}
+	for _, entry := range dupes {
+		var s string
+		s = strconv.FormatInt(entry.Size, 10) + "\t" + entry.Path + "\n"
+		lines = append(lines, s)
+	}
+	sort.Strings(lines)
+	for _, line := range lines {
+		outputStr += line
+	}
+	return outputStr
+}
