@@ -9,6 +9,7 @@ import (
 
 type FindConfig struct {
 	MinSize  int64
+	MaxSize *int64 // zero value nil allows to check if value was set
 	SkipDirs []string
 }
 
@@ -58,8 +59,31 @@ func FindFilesSizes(dirPath string, config FindConfig) (map[int64][]FileEntry, u
 
 		// if its a file then add it to the list
 		if info.Mode().IsRegular() {
+			// test for file size filters
 			size := info.Size()
+			// default to false
+			var passMinSize bool
+			var passMaxSize bool
+			var passSize bool
+
 			if size >= config.MinSize {
+				passMinSize = true
+			}
+
+			// MaxSize automatically passes if no value was given
+			if config.MaxSize == nil {
+				passMaxSize = true
+				} else {
+					if size <= *config.MaxSize {
+						passMaxSize = true
+				}
+			}
+
+			if passMinSize && passMaxSize {
+				passSize = true
+			}
+
+			if passSize {
 				fileEntry := NewFileEntryFromPathInfo(path, info)
 				fileMap[size] = append(fileMap[size], fileEntry)
 				numFiles += 1
