@@ -73,6 +73,7 @@ benchmark-dir: $(BENCHDIR)
 BIN:=./dupefinder
 BENCHARGS:=--parallel 1
 # takes about 10-60s for each iteration on standard NVMe SSD
+# on SATA HDD each iteration should take about 2min30s - 3min~ish
 benchmark: $(BENCHDIR) $(BIN)
 	for i in md5 sha1 sha256 xxhash; do \
 	echo ">>> ----- $$i ------" ; \
