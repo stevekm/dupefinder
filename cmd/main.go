@@ -11,12 +11,12 @@ import (
 type CLI struct {
 	InputDir   string `help:"path to input file to search" arg:""`
 	IgnoreFile string `help:"path to file of dir paths to ignore"`
-	PrintSize  bool   `help:"print the file size"`
+	PrintSize  bool   `help:"print the file size (hint: pipe to 'sort -k2,2n')"`
 	Parallel   int    `help:"number of files to hash in parallel (only use value >1 with SSD)" default:"1"`
 	Profile    bool   `help:"enable profiling and outputs files for use with
 'go tool pprof cpu.prof' (hint: use the 'top' command in pprof to see resource usages)"`
 	HashBytes int64  `help:"number of bytes to hash for each duplicated file; example: 1000 = 1KB, 1000000 = 1MB, 1000000000 = 1GB"`
-	Algo      string `help:"hashing algorithm to use. Options: md5, sha1, sha256, xxhash" default:"md5"`
+	Algo      string `help:"hashing algorithm to use. Options (fastest to slowest): xxhash, sha1, md5, sha256" default:"md5"`
 	SizeOnly bool `help:"only look for duplicates based on file size"`
 	MinSize   int64  `help:"only include files of minimum size (bytes) or larger when searching"`
 	// NOTE: note sure how to get Kong to accept type of *int64 here for MaxSize;
@@ -67,7 +67,8 @@ func run(
 
 	findConfig := finder.FindConfig{MinSize: minSize} // var skipDirs = []string{} // ignoreFile goes here
 
-	// NOTE: note sure how to get Kong to accept type of *int64 here for MaxSize
+	// NOTE: not sure how to get Kong to accept type of *int64 here for MaxSize
+	// TODO: fix this handling when future release of Kong can support *int64 to be able to use nil as default value
 	if maxSize > 0 {
 		findConfig.MaxSize = &maxSize
 	}
@@ -86,6 +87,9 @@ func run(
 		return nil
 	}
 
+	// check if we only want to search for files with dupilcate byte size
+	// note that this is NOT a reliable way to find dupilcates, some filetypes have fixed size, etc.
+	// but it is very fast
 	if sizeOnly {
 		fileSizeMap, _ := finder.FindFilesSizes(inputDir, findConfig)
 		sizeDupes := finder.FindSizeDupes(fileSizeMap)
@@ -93,6 +97,8 @@ func run(
 			format := finder.FileEntryFormatter(entries)
 			fmt.Printf("%s", format)
 		}
+
+	// do the full hash checking search instead
 	} else {
 		dupes := finder.FindDupes(inputDir, findConfig, hashConfig)
 		for _, entries := range dupes {
