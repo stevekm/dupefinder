@@ -12,9 +12,9 @@ type CLI struct {
 	InputDir   string `help:"path to input file to search" arg:""`
 	IgnoreFile string `help:"path to file of dir paths to ignore"`
 	PrintSize  bool   `help:"print the file size"`
-	Parallel   int    `help:"number of items to process in parallel" default:"2"`
+	Parallel   int    `help:"number of files to hash in parallel (only use value >1 with SSD)" default:"1"`
 	Profile    bool   `help:"enable profiling and outputs files for use with
-'go tool pprof cpu.prof'"`
+'go tool pprof cpu.prof' (hint: use the 'top' command in pprof to see resource usages)"`
 	HashBytes int64  `help:"number of bytes to hash for each duplicated file; example: 1000 = 1KB, 1000000 = 1MB, 1000000000 = 1GB"`
 	Algo      string `help:"hashing algorithm to use. Options: md5, sha1, sha256, xxhash" default:"md5"`
 	SizeOnly bool `help:"only look for duplicates based on file size"`
