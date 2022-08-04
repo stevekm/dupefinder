@@ -44,32 +44,43 @@ run-server:
 
 
 # ~~~~~ Set up Benchmark dir ~~~~~ #
-# set up a dir with tons of files and some very large duplicate files
-# install conda to get a lot of files and dirs
-# USAGE: $ ./dupefinder conda
+# set up a dir with tons of files and some very large duplicate files to test the program against
 
-CONDASH:=Miniconda3-py39_4.12.0-MacOSX-arm64.sh
-# Miniconda3-py39_4.12.0-MacOSX-x86_64.sh
-# Miniconda3-py39_4.12.0-Linux-x86_64.sh
-CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
-$(CONDASH):
-	wget "$(CONDAURL)"
-
-# rm -f "$(CONDASH)"
-conda: $(CONDASH)
-	@set +e
-	bash "$(CONDASH)" -b -p conda
-
-
-# https://go.dev/dl/
-go1.18.3.darwin-amd64.tar.gz:
-	wget https://go.dev/dl/go1.18.3.darwin-amd64.tar.gz
-
-big-dir-for-benchmarks: conda go1.18.3.darwin-amd64.tar.gz
+# https://go.dev/dl/go1.18.3.darwin-amd64.tar.gz
+# https://dl.google.com/go/go1.18.3.darwin-amd64.tar.gz
+BENCHDIR:=benchmarkdir
+GO_TAR:=go1.18.3.darwin-amd64.tar.gz
+$(GO_TAR):
 	set -e
-	/bin/cp go1.18.3.darwin-amd64.tar.gz conda/bin
-	/bin/cp go1.18.3.darwin-amd64.tar.gz conda/include
-	cat go1.18.3.darwin-amd64.tar.gz > conda/etc/foo
-	cat go1.18.3.darwin-amd64.tar.gz >> conda/etc/foo
-	cat go1.18.3.darwin-amd64.tar.gz >> conda/etc/foo
-	/bin/cp conda/etc/foo conda/bin/bar
+	wget https://dl.google.com/go/$(GO_TAR)
+
+$(BENCHDIR): $(GO_TAR)
+	set -e
+	mkdir -p "$(BENCHDIR)"
+	tar -C "$(BENCHDIR)" -xf "$(GO_TAR)"
+	/bin/cp "$(GO_TAR)" $(BENCHDIR)
+	/bin/cp "$(GO_TAR)" $(BENCHDIR)/go/
+	/bin/cp "$(GO_TAR)" $(BENCHDIR)/copy2.tar.gz
+	for i in $$(seq 1 5); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/bin/foo ; done
+	for i in $$(seq 1 5); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/doc/foo2 ; done
+	for i in $$(seq 1 10); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/lib/bar ; done
+	for i in $$(seq 1 10); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/misc/bar2 ; done
+	for i in $$(seq 1 15); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/src/baz ; done
+	for i in $$(seq 1 15); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/test/baz2 ; done
+	for i in $$(seq 1 20); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/src/buzz ; done
+	for i in $$(seq 1 20); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/test/buzz2 ; done
+	for i in $$(seq 1 20); do cat "$(GO_TAR)" >> $(BENCHDIR)/go/bin/buzz3 ; done
+
+benchmark-dir: $(BENCHDIR)
+
+BIN:=./dupefinder
+BENCHARGS:=--parallel 1
+# takes about 10-60s for each iteration on standard NVMe SSD
+# on SATA HDD each iteration should take about 2min30s - 3min~ish
+benchmark: $(BENCHDIR) $(BIN)
+	for i in md5 sha1 sha256 xxhash; do \
+	echo ">>> ----- $$i ------" ; \
+	for q in $$(seq 1 4 ); do \
+	( set  -x ; time $(BIN) $(BENCHARGS) --algo $$i "$(BENCHDIR)" > /dev/null ; ) ; \
+	done ; \
+	done

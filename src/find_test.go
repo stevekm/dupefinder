@@ -66,3 +66,34 @@ func TestSkipSmallFiles(t *testing.T) {
 	})
 
 }
+
+func TestSkipLargeFiles(t *testing.T) {
+	tempdir := t.TempDir()
+	t.Run("Test skip large files", func(t *testing.T) {
+		_, tempFiles := createTempFilesDirs1(tempdir)
+		var maxSize int64 = 5
+		findConfig := FindConfig{MaxSize: &maxSize}
+		gotFiles, gotNumFiles := FindFilesSizes(tempdir, findConfig)
+
+		wantFiles := map[int64][]FileEntry{
+			0: []FileEntry{
+				NewFileEntryFromPath(tempFiles[2].Name()),
+				NewFileEntryFromPath(tempFiles[1].Name()),
+				NewFileEntryFromPath(tempFiles[3].Name()),
+				NewFileEntryFromPath(tempFiles[4].Name()),
+			},
+		}
+
+		var wantNumFiles uint64 = 4
+
+		if diff := cmp.Diff(wantFiles, gotFiles); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+		if diff := cmp.Diff(wantNumFiles, gotNumFiles); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+	})
+
+}

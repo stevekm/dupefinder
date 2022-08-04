@@ -9,6 +9,7 @@ import (
 
 type FindConfig struct {
 	MinSize  int64
+	MaxSize *int64 // zero value nil allows to check if value was set
 	SkipDirs []string
 }
 
@@ -58,8 +59,31 @@ func FindFilesSizes(dirPath string, config FindConfig) (map[int64][]FileEntry, u
 
 		// if its a file then add it to the list
 		if info.Mode().IsRegular() {
+			// test for file size filters
 			size := info.Size()
+			// default to false
+			var passMinSize bool
+			var passMaxSize bool
+			var passSize bool
+
 			if size >= config.MinSize {
+				passMinSize = true
+			}
+
+			// MaxSize automatically passes if no value was given
+			if config.MaxSize == nil {
+				passMaxSize = true
+				} else {
+					if size <= *config.MaxSize {
+						passMaxSize = true
+				}
+			}
+
+			if passMinSize && passMaxSize {
+				passSize = true
+			}
+
+			if passSize {
 				fileEntry := NewFileEntryFromPathInfo(path, info)
 				fileMap[size] = append(fileMap[size], fileEntry)
 				numFiles += 1
@@ -75,11 +99,22 @@ func FindFilesSizes(dirPath string, config FindConfig) (map[int64][]FileEntry, u
 	return fileMap, numFiles
 }
 
+func FindSizeDupes(fileSizeMap map[int64][]FileEntry) map[int64][]FileEntry {
+	dupesMap := map[int64][]FileEntry{}
+	for key, entries := range fileSizeMap {
+		if len(entries) > 1 {
+			dupesMap[key] = entries
+		}
+	}
+	return dupesMap
+}
+
 // find all the duplicate files in the dir
 // Duplicates = same file size, same hash value
 // TODO: this might need to be broken up to aid garbage collection ??
 func FindDupes(dirPath string, findConfig FindConfig, hashConfig HashConfig) map[string][]FileHashEntry {
 	fileSizeMap, _ := FindFilesSizes(dirPath, findConfig)
-	hashDupes := FindHashDupes(fileSizeMap, hashConfig)
+	sizeDupes := FindSizeDupes(fileSizeMap)
+	hashDupes := FindHashDupes(sizeDupes, hashConfig)
 	return hashDupes
 }
