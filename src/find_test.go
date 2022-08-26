@@ -9,98 +9,91 @@ import (
 	"path/filepath"
 )
 
-func TestFindAllFiles(t *testing.T) {
-	// set up temp dirs for tests
+
+
+// test cases for finding files
+func TestFindFiles(t *testing.T){
+	// setup test dirs & files
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
+	tempDirs, tempFiles, _ := createTempFilesDirs1(tempdir)
 
-	t.Run("Test find all files", func(t *testing.T) {
-		tempDirs, tempFiles := createTempFilesDirs1(tempdir)
-		findConfig := FindConfig{SkipDirs: []string{tempDirs[2]}}
-		gotFiles, gotNumFiles := FindFilesSizes(tempdir, findConfig)
+	var maxsize int64 = 5
 
-		wantFiles := map[int64][]FileEntry{
-			0: []FileEntry{
-				NewFileEntryFromPath(tempFiles[2].Name()),
-				NewFileEntryFromPath(tempFiles[1].Name()),
-				NewFileEntryFromPath(tempFiles[3].Name()),
+	tests := map[string]struct {
+		config FindConfig
+		wantFiles   map[int64][]FileEntry
+		wantNumFiles uint64
+	}{
+		"all_files": {
+			config: FindConfig{},
+			wantFiles:  map[int64][]FileEntry{
+				0: []FileEntry{
+					NewFileEntryFromPath(tempFiles[2].Name()),
+					NewFileEntryFromPath(tempFiles[1].Name()),
+					NewFileEntryFromPath(tempFiles[3].Name()),
+					NewFileEntryFromPath(tempFiles[4].Name()),
+				},
+				7: []FileEntry{
+					NewFileEntryFromPath(tempFiles[0].Name()),
+				},
 			},
-			7: []FileEntry{
-				NewFileEntryFromPath(tempFiles[0].Name()),
+			wantNumFiles: uint64(5),
+		},
+		"skip_dir": {
+			config: FindConfig{SkipDirs: []string{tempDirs[2]}},
+			wantFiles:  map[int64][]FileEntry{
+				0: []FileEntry{
+					NewFileEntryFromPath(tempFiles[2].Name()),
+					NewFileEntryFromPath(tempFiles[1].Name()),
+					NewFileEntryFromPath(tempFiles[3].Name()),
+				},
+				7: []FileEntry{
+					NewFileEntryFromPath(tempFiles[0].Name()),
+				},
 			},
-		}
+			wantNumFiles: uint64(4),
+		},
+		"skip_small_files": {
+			config: FindConfig{MinSize: 5},
+			wantFiles:  map[int64][]FileEntry{
+				7: []FileEntry{
+					NewFileEntryFromPath(tempFiles[0].Name()),
+				},
+			},
+			wantNumFiles: uint64(1),
+		},
+		"skip_large_files": {
+			config: FindConfig{MaxSize: &maxsize},
+			wantFiles: map[int64][]FileEntry{
+				0: []FileEntry{
+					NewFileEntryFromPath(tempFiles[2].Name()),
+					NewFileEntryFromPath(tempFiles[1].Name()),
+					NewFileEntryFromPath(tempFiles[3].Name()),
+					NewFileEntryFromPath(tempFiles[4].Name()),
+				},
+			},
+			wantNumFiles: uint64(4),
+		},
+	}
 
-		var wantNumFiles uint64 = 4
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			gotFiles, gotNumFiles := FindFilesSizes(tempdir, tc.config)
 
-		// test that we found the expected files
-		// NOTE: might need to revise this test to not depend on order of items in the list!
-		if diff := cmp.Diff(wantFiles, gotFiles); diff != "" {
-			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
-		}
+			// test that we found the expected files
+			// NOTE: might need to revise this test to not depend on order of items in the list!
+			if diff := cmp.Diff(tc.wantFiles, gotFiles); diff != "" {
+				t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+			}
 
-		if diff := cmp.Diff(wantNumFiles, gotNumFiles); diff != "" {
-			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
-		}
-
-	})
+			if diff := cmp.Diff(tc.wantNumFiles, gotNumFiles); diff != "" {
+				t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
 }
 
-func TestSkipSmallFiles(t *testing.T) {
-	tempdir := t.TempDir()
-	t.Run("Test find all files", func(t *testing.T) {
-		_, tempFiles := createTempFilesDirs1(tempdir)
-		findConfig := FindConfig{MinSize: 5}
-		gotFiles, gotNumFiles := FindFilesSizes(tempdir, findConfig)
 
-		wantFiles := map[int64][]FileEntry{
-			7: []FileEntry{
-				NewFileEntryFromPath(tempFiles[0].Name()),
-			},
-		}
-
-		var wantNumFiles uint64 = 1
-
-		if diff := cmp.Diff(wantFiles, gotFiles); diff != "" {
-			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
-		}
-
-		if diff := cmp.Diff(wantNumFiles, gotNumFiles); diff != "" {
-			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
-		}
-
-	})
-
-}
-
-func TestSkipLargeFiles(t *testing.T) {
-	tempdir := t.TempDir()
-	t.Run("Test skip large files", func(t *testing.T) {
-		_, tempFiles := createTempFilesDirs1(tempdir)
-		var maxSize int64 = 5
-		findConfig := FindConfig{MaxSize: &maxSize}
-		gotFiles, gotNumFiles := FindFilesSizes(tempdir, findConfig)
-
-		wantFiles := map[int64][]FileEntry{
-			0: []FileEntry{
-				NewFileEntryFromPath(tempFiles[2].Name()),
-				NewFileEntryFromPath(tempFiles[1].Name()),
-				NewFileEntryFromPath(tempFiles[3].Name()),
-				NewFileEntryFromPath(tempFiles[4].Name()),
-			},
-		}
-
-		var wantNumFiles uint64 = 4
-
-		if diff := cmp.Diff(wantFiles, gotFiles); diff != "" {
-			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
-		}
-
-		if diff := cmp.Diff(wantNumFiles, gotNumFiles); diff != "" {
-			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
-		}
-
-	})
-
-}
 
 
 // test for finding duplicate files
@@ -109,12 +102,12 @@ func TestFindDupes(t *testing.T) {
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
 
 	t.Run("Test find dupes", func(t *testing.T) {
-		tempDirs, tempFiles := createTempFilesDirs1(tempdir)
+		tempDirs, tempFiles, wantNumFiles := createTempFilesDirs1(tempdir)
 		hashConfig := HashConfig{NumWorkers: 2}
 		findConfig := FindConfig{SkipDirs: []string{tempDirs[2]}}
-		got, _ := FindDupes(tempdir, findConfig, hashConfig)
+		gotDupes, gotNumFiles := FindDupes(tempdir, findConfig, hashConfig)
 		wantHash := "d41d8cd98f00b204e9800998ecf8427e"
-		want := map[string][]FileHashEntry{
+		wantDupes := map[string][]FileHashEntry{
 			wantHash: []FileHashEntry{
 				NewFileHashEntry(NewFileEntryFromPath(tempFiles[2].Name()), hashConfig),
 				NewFileHashEntry(NewFileEntryFromPath(tempFiles[1].Name()), hashConfig),
@@ -122,23 +115,28 @@ func TestFindDupes(t *testing.T) {
 			},
 		}
 		// test that we found the expected duplicate files
-		if len(got) != len(want) {
-			t.Errorf("got %v is not the same as %v", got, want)
+		if len(gotDupes) != len(wantDupes) {
+			t.Errorf("got %v is not the same as %v", gotDupes, wantDupes)
 		}
-		if len(got[wantHash]) != len(want[wantHash]) {
-			t.Errorf("got %v is not the same as %v", got, want)
+		if len(gotDupes[wantHash]) != len(wantDupes[wantHash]) {
+			t.Errorf("got %v is not the same as %v", len(gotDupes[wantHash]),  len(wantDupes[wantHash]))
 		}
-		for _, entry := range want[wantHash] {
-			if !containsFileHashEntry(got[wantHash], entry) {
-				t.Errorf("%v not in list %v", entry, got[wantHash])
+		for _, entry := range wantDupes[wantHash] {
+			if !containsFileHashEntry(gotDupes[wantHash], entry) {
+				t.Errorf("%v not in list %v", entry, gotDupes[wantHash])
 			}
+		}
+
+		// test that the expected number of files were processed
+		if int(gotNumFiles) != wantNumFiles {
+			t.Errorf("gotNumFiles %v is not the same as wantNumFiles: %v", gotNumFiles,  wantNumFiles)
 		}
 
 		// test that the console formatter prints them in the expected format
 		config := FormatConfig{Size: false}
-		gotFormat := DupesFormatter(got[wantHash], config)
+		gotFormat := DupesFormatter(gotDupes[wantHash], config)
 		var wantFormat string
-		for _, entry := range want[wantHash] {
+		for _, entry := range wantDupes[wantHash] {
 			wantFormat += wantHash + "\t" + entry.File.Path + "\n"
 		}
 

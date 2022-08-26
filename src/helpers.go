@@ -74,30 +74,36 @@ func createSubDir(tempdir string, filename string) string {
 // tempfile2 and tempfile3 have different names but same contents (empty)
 // tempfile3 and tempfile4 have same names and same contents (empty) but different directories
 // tempfile5 is in the subdir to skip and has same size as tempfile2, tempfile3
-func createTempFilesDirs1(tempdir string) ([]string, []*os.File) {
+func createTempFilesDirs1(tempdir string) ([]string, []*os.File, int) {
+	numFilesCreated := 0
 	subdir1 := createSubDir(tempdir, "subdir.1")
 	subdir2 := createSubDir(tempdir, "subdir.2")
 	subdir3 := createSubDir(tempdir, "subdir.3")
 
 	tempfile1, _ := createTempFile(subdir1, "file1.", "writes\n")
+	numFilesCreated += 1
 	// defer tempfile1.Close()
 
 	tempfile2, _ := createTempFile(subdir2, "file2.", "")
+	numFilesCreated += 1
 	// defer tempfile2.Close()
 
 	tempfile3, tempfile3Basename := createTempFile(tempdir, "file3.", "")
+	numFilesCreated += 1
 	// defer tempfile3.Close()
 
 	tempfile4, _ := createTempFile(subdir2, tempfile3Basename, "")
+	numFilesCreated += 1
 	// defer tempfile4.Close()
 
 	tempfile5, _ := createTempFile(subdir3, "file5.", "")
+	numFilesCreated += 1
 	// defer tempfile5.Close()
 
 	tempDirs := []string{subdir1, subdir2, subdir3}
 	tempFiles := []*os.File{tempfile1, tempfile2, tempfile3, tempfile4, tempfile5}
 
-	return tempDirs, tempFiles
+	return tempDirs, tempFiles, numFilesCreated
 }
 
 func createLargeFile(tempdir string, size int64) (*os.File, os.FileInfo) {
