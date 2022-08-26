@@ -8,3 +8,4 @@ cpu.prof
 mem.prof
 benchmarkdir/
 server
+dupefinder.code-workspace
