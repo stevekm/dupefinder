@@ -100,7 +100,7 @@ func run(
 
 	// do the full hash checking search instead
 	} else {
-		dupes := finder.FindDupes(inputDir, findConfig, hashConfig)
+		dupes, _ := finder.FindDupes(inputDir, findConfig, hashConfig)
 		for _, entries := range dupes {
 			format := finder.DupesFormatter(entries, formatConfig)
 			fmt.Printf("%s", format) // format has newline embedded at the end

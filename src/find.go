@@ -112,9 +112,9 @@ func FindSizeDupes(fileSizeMap map[int64][]FileEntry) map[int64][]FileEntry {
 // find all the duplicate files in the dir
 // Duplicates = same file size, same hash value
 // TODO: this might need to be broken up to aid garbage collection ??
-func FindDupes(dirPath string, findConfig FindConfig, hashConfig HashConfig) map[string][]FileHashEntry {
-	fileSizeMap, _ := FindFilesSizes(dirPath, findConfig)
+func FindDupes(dirPath string, findConfig FindConfig, hashConfig HashConfig) (map[string][]FileHashEntry, uint64) {
+	fileSizeMap, numFiles := FindFilesSizes(dirPath, findConfig)
 	sizeDupes := FindSizeDupes(fileSizeMap)
 	hashDupes := FindHashDupes(sizeDupes, hashConfig)
-	return hashDupes
+	return hashDupes, numFiles
 }
