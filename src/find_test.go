@@ -160,7 +160,7 @@ func TestTooManyFiles(t *testing.T) {
 	t.Run("Find dupes without exceeding the limit on number of open files", func(t *testing.T) {
 		// make a large number of temp files, each with different contents
 		var wantNumFiles int
-		ints := makeRange(0, 20000)
+		ints := makeRange(0, 40000)
 		for i := range ints {
 			i_str := strconv.Itoa(i)
 			t, _ := createTempFile(tempdir, i_str, i_str)
@@ -169,8 +169,10 @@ func TestTooManyFiles(t *testing.T) {
 		}
 		// create two temp files with the same contents
 		tempfile1, _ := createTempFile(tempdir, "f.", "foo")
+		wantNumFiles += 1
 		defer tempfile1.Close()
 		tempfile2, _ := createTempFile(tempdir, "f2.", "foo")
+		wantNumFiles += 1
 		defer tempfile2.Close()
 
 		// var skipDirs = []string{}
@@ -186,7 +188,7 @@ func TestTooManyFiles(t *testing.T) {
 		if diff := cmp.Diff(wantHashDupes, gotHashDupes); diff != "" {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
-		
+
 		if int(gotNumFiles) != wantNumFiles {
 			t.Errorf("gotNumFiles %v is not the same as wantNumFiles: %v", gotNumFiles, wantNumFiles)
 		}
