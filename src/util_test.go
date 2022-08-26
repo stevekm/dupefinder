@@ -211,7 +211,7 @@ func TestLargeFileHandling(t *testing.T) {
 				defer wg.Done()
 				for entry := range work {
 					fileHashEntry := NewFileHashEntry(entry, HashConfig{})
-					log.Printf("%v\n", fileHashEntry)
+					// log.Printf("%v\n", fileHashEntry)
 					results <- fileHashEntry
 				}
 			}()
@@ -244,7 +244,7 @@ func TestLargeFileHandling(t *testing.T) {
 			// could write the file to disk
 			allResults = append(allResults, result)
 		}
-		log.Printf("allResults: %v\n", allResults)
+		// log.Printf("allResults: %v\n", allResults)
 
 	})
 }
