@@ -2,17 +2,15 @@ package finder
 
 import (
 	"github.com/google/go-cmp/cmp"
-	"testing"
-	"strconv"
-	"os"
 	"log"
+	"os"
 	"path/filepath"
+	"strconv"
+	"testing"
 )
 
-
-
 // test cases for finding files
-func TestFindFiles(t *testing.T){
+func TestFindFiles(t *testing.T) {
 	// setup test dirs & files
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
 	tempDirs, tempFiles, _ := createTempFilesDirs1(tempdir)
@@ -20,13 +18,13 @@ func TestFindFiles(t *testing.T){
 	var maxsize int64 = 5
 
 	tests := map[string]struct {
-		config FindConfig
-		wantFiles   map[int64][]FileEntry
+		config       FindConfig
+		wantFiles    map[int64][]FileEntry
 		wantNumFiles uint64
 	}{
 		"all_files": {
 			config: FindConfig{},
-			wantFiles:  map[int64][]FileEntry{
+			wantFiles: map[int64][]FileEntry{
 				0: []FileEntry{
 					NewFileEntryFromPath(tempFiles[2].Name()),
 					NewFileEntryFromPath(tempFiles[1].Name()),
@@ -41,7 +39,7 @@ func TestFindFiles(t *testing.T){
 		},
 		"skip_dir": {
 			config: FindConfig{SkipDirs: []string{tempDirs[2]}},
-			wantFiles:  map[int64][]FileEntry{
+			wantFiles: map[int64][]FileEntry{
 				0: []FileEntry{
 					NewFileEntryFromPath(tempFiles[2].Name()),
 					NewFileEntryFromPath(tempFiles[1].Name()),
@@ -55,7 +53,7 @@ func TestFindFiles(t *testing.T){
 		},
 		"skip_small_files": {
 			config: FindConfig{MinSize: 5},
-			wantFiles:  map[int64][]FileEntry{
+			wantFiles: map[int64][]FileEntry{
 				7: []FileEntry{
 					NewFileEntryFromPath(tempFiles[0].Name()),
 				},
@@ -93,9 +91,6 @@ func TestFindFiles(t *testing.T){
 	}
 }
 
-
-
-
 // test for finding duplicate files
 func TestFindDupes(t *testing.T) {
 	// set up temp dirs for tests
@@ -119,7 +114,7 @@ func TestFindDupes(t *testing.T) {
 			t.Errorf("got %v is not the same as %v", gotDupes, wantDupes)
 		}
 		if len(gotDupes[wantHash]) != len(wantDupes[wantHash]) {
-			t.Errorf("got %v is not the same as %v", len(gotDupes[wantHash]),  len(wantDupes[wantHash]))
+			t.Errorf("got %v is not the same as %v", len(gotDupes[wantHash]), len(wantDupes[wantHash]))
 		}
 		for _, entry := range wantDupes[wantHash] {
 			if !containsFileHashEntry(gotDupes[wantHash], entry) {
@@ -129,8 +124,8 @@ func TestFindDupes(t *testing.T) {
 
 		// test that the expected number of files were processed
 		// we skipped a dir so there should have been one fewer files processed by 'find'
-		if int(gotNumFiles) != wantNumFiles - 1 {
-			t.Errorf("gotNumFiles %v is not the same as wantNumFiles: %v", gotNumFiles,  wantNumFiles)
+		if int(gotNumFiles) != wantNumFiles-1 {
+			t.Errorf("gotNumFiles %v is not the same as wantNumFiles: %v", gotNumFiles, wantNumFiles)
 		}
 
 		// test that the console formatter prints them in the expected format
@@ -147,7 +142,6 @@ func TestFindDupes(t *testing.T) {
 
 	})
 }
-
 
 func TestTooManyFiles(t *testing.T) {
 	// only run this test if DIR_TEST env var was enabled because it creates a lot of files

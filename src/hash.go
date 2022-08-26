@@ -19,6 +19,7 @@ type HashConfig struct {
 	NumBytes   int64
 	Partial    bool
 	Algo       string
+	Verbose    bool //false by default
 }
 
 type HashResult struct {
@@ -96,6 +97,7 @@ func GetFileHash(fileEntry FileEntry, config HashConfig) (FileHashEntry, error) 
 // find files that have the same hash value
 func FindHashDupes(fileMap map[int64][]FileEntry, hashConfig HashConfig) map[string][]FileHashEntry {
 	hashesMap := map[string][]FileHashEntry{}
+	var numFilesHashed int
 
 	// set up for concurrent parallel processing of file hashing
 	// https://stackoverflow.com/questions/71458290/how-to-batch-dealing-with-files-using-goroutine/71458664#71458664
@@ -116,6 +118,9 @@ func FindHashDupes(fileMap map[int64][]FileEntry, hashConfig HashConfig) map[str
 		go func() {
 			defer wg.Done()
 			for fileEntry := range work {
+				if hashConfig.Verbose {
+					logger.Printf("Hashing %v\n", fileEntry.Path)
+				}
 				fileHashEntry, err := GetFileHash(fileEntry, hashConfig)
 				result := HashResult{Entry: fileHashEntry, Err: err}
 				results <- result
@@ -148,6 +153,7 @@ func FindHashDupes(fileMap map[int64][]FileEntry, hashConfig HashConfig) map[str
 	// channel is closed and the last value
 	// has been received
 	for result := range results {
+		numFilesHashed += 1
 		// allResults = append(allResults, result)
 		if os.IsPermission(result.Err) {
 			logger.Printf("WARNING: Skipping file that could not be opened due to permissions error: %v\n", result.Err)
@@ -161,11 +167,21 @@ func FindHashDupes(fileMap map[int64][]FileEntry, hashConfig HashConfig) map[str
 		hashesMap[result.Entry.Hash] = append(hashesMap[result.Entry.Hash], result.Entry)
 	}
 
+	if hashConfig.Verbose {
+		logger.Printf("Hashed %v files\n", numFilesHashed)
+	}
+
 	dupesMap := map[string][]FileHashEntry{}
+	var numHashDupes int
 	for hash, entries := range hashesMap {
 		if len(entries) > 1 {
 			dupesMap[hash] = entries
+			numHashDupes += len(entries)
 		}
+	}
+
+	if hashConfig.Verbose {
+		logger.Printf("Found %v hash duplicates\n", numHashDupes)
 	}
 	return dupesMap
 }

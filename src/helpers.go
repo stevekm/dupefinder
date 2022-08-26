@@ -8,9 +8,9 @@ import (
 	"testing"
 )
 
-// 
+//
 // HELPER FUNCTIONS AND METHOD FOR USE WITH TEST SUITE
-// 
+//
 
 // skip the test with the big dir with lots of files;
 // $ DIR_TEST=True make test
@@ -24,7 +24,6 @@ func skipDirTest(t *testing.T) {
 		t.Skip(">>> Skipping dir test")
 	}
 }
-
 
 // create a temp file in a dir and write something to its contents
 func createTempFile(tempdir string, filename string, contents string) (*os.File, string) {

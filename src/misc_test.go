@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-
 // NOTE: What is this test even for?? Looks like some old prototype code..
 // Looks like it just creates a ton of files and then hashes them all
 func TestLargeFileHandling(t *testing.T) {

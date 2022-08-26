@@ -17,11 +17,12 @@ type CLI struct {
 'go tool pprof cpu.prof' (hint: use the 'top' command in pprof to see resource usages)"`
 	HashBytes int64  `help:"number of bytes to hash for each duplicated file; example: 1000 = 1KB, 1000000 = 1MB, 1000000000 = 1GB"`
 	Algo      string `help:"hashing algorithm to use. Options (fastest to slowest): xxhash, sha1, md5, sha256" default:"md5"`
-	SizeOnly bool `help:"only look for duplicates based on file size"`
+	SizeOnly  bool   `help:"only look for duplicates based on file size"`
 	MinSize   int64  `help:"only include files of minimum size (bytes) or larger when searching"`
 	// NOTE: note sure how to get Kong to accept type of *int64 here for MaxSize;
-	MaxSize   int64  `help:"only include files of maximum size (bytes) or smaller when searching. Value must be >0, value of 0 = disabled" default:"0"`
-	Debug     bool   `help:"only used for dev debug purposes! Don't use this option it doesnt do anything"`
+	MaxSize int64 `help:"only include files of maximum size (bytes) or smaller when searching. Value must be >0, value of 0 = disabled" default:"0"`
+	Debug   bool  `help:"only used for dev debug purposes! Don't use this option it doesnt do anything"`
+	Verbose bool  `help:"print messages to stderr while processing files"` // false by default
 }
 
 func (cli *CLI) Run() error {
@@ -37,6 +38,7 @@ func (cli *CLI) Run() error {
 		cli.SizeOnly,
 		cli.MaxSize,
 		cli.Debug,
+		cli.Verbose,
 	)
 	if err != nil {
 		log.Fatalln(err)
@@ -56,7 +58,9 @@ func run(
 	sizeOnly bool,
 	maxSize int64,
 	debug bool,
+	verbose bool,
 ) error {
+	// fmt.Printf("verbose: %v\n", verbose)
 
 	if enableProfile {
 		cpuFile, memFile := finder.StartProfiler()
@@ -65,7 +69,7 @@ func run(
 		defer pprof.StopCPUProfile()
 	}
 
-	findConfig := finder.FindConfig{MinSize: minSize} // var skipDirs = []string{} // ignoreFile goes here
+	findConfig := finder.FindConfig{MinSize: minSize, Verbose: verbose} // var skipDirs = []string{} // ignoreFile goes here
 
 	// NOTE: not sure how to get Kong to accept type of *int64 here for MaxSize
 	// TODO: fix this handling when future release of Kong can support *int64 to be able to use nil as default value
@@ -73,7 +77,7 @@ func run(
 		findConfig.MaxSize = &maxSize
 	}
 
-	hashConfig := finder.HashConfig{NumWorkers: numWorkers, Algo: algo}
+	hashConfig := finder.HashConfig{NumWorkers: numWorkers, Algo: algo, Verbose: verbose}
 	if hashBytes > 0 {
 		hashConfig.Partial = true
 		hashConfig.NumBytes = hashBytes
@@ -92,13 +96,13 @@ func run(
 	// but it is very fast
 	if sizeOnly {
 		fileSizeMap, _ := finder.FindFilesSizes(inputDir, findConfig)
-		sizeDupes := finder.FindSizeDupes(fileSizeMap)
+		sizeDupes, _ := finder.FindSizeDupes(fileSizeMap)
 		for _, entries := range sizeDupes {
 			format := finder.FileEntryFormatter(entries)
 			fmt.Printf("%s", format)
 		}
 
-	// do the full hash checking search instead
+		// do the full hash checking search instead
 	} else {
 		dupes, _ := finder.FindDupes(inputDir, findConfig, hashConfig)
 		for _, entries := range dupes {

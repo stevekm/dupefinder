@@ -7,29 +7,29 @@ import (
 )
 
 // test cases for hashing algos
-func TestHash(t *testing.T){
+func TestHash(t *testing.T) {
 	// setup test dirs & files
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
 
 	tests := map[string]struct {
 		config HashConfig
-		want  string
+		want   string
 	}{
 		"test_md5": {
 			config: HashConfig{},
-			want: "9d365f59076828add0b000414583cb33",
+			want:   "9d365f59076828add0b000414583cb33",
 		},
 		"test_sha1": {
 			config: HashConfig{Algo: "sha1"},
-			want: "67503a007b3829965fde57d51768bdb32bb0389f",
+			want:   "67503a007b3829965fde57d51768bdb32bb0389f",
 		},
 		"test_sha256": {
 			config: HashConfig{Algo: "sha256"},
-			want: "fd6e46528c86f5f2a43aa9f013bf64fcc6939606e077bf3a4b14ef09fcb46f59",
+			want:   "fd6e46528c86f5f2a43aa9f013bf64fcc6939606e077bf3a4b14ef09fcb46f59",
 		},
 		"test_xxhash": {
 			config: HashConfig{Algo: "xxhash"},
-			want: "b59acf3d21a6a54a",
+			want:   "b59acf3d21a6a54a",
 		},
 	}
 

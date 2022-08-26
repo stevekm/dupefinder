@@ -9,8 +9,9 @@ import (
 
 type FindConfig struct {
 	MinSize  int64
-	MaxSize *int64 // zero value nil allows to check if value was set
+	MaxSize  *int64 // zero value nil allows to check if value was set
 	SkipDirs []string
+	Verbose  bool // false by default
 }
 
 // check if a slice contains a specific string
@@ -37,6 +38,10 @@ func containsFileHashEntry(l []FileHashEntry, e FileHashEntry) bool {
 func FindFilesSizes(dirPath string, config FindConfig) (map[int64][]FileEntry, uint64) {
 	fileMap := map[int64][]FileEntry{}
 	var numFiles uint64
+
+	if config.Verbose {
+		logger.Printf("Searching for files in path %v\n", dirPath)
+	}
 
 	err := filepath.Walk(dirPath, func(path string, info fs.FileInfo, err error) error {
 		// skip item that cannot be read
@@ -73,9 +78,9 @@ func FindFilesSizes(dirPath string, config FindConfig) (map[int64][]FileEntry, u
 			// MaxSize automatically passes if no value was given
 			if config.MaxSize == nil {
 				passMaxSize = true
-				} else {
-					if size <= *config.MaxSize {
-						passMaxSize = true
+			} else {
+				if size <= *config.MaxSize {
+					passMaxSize = true
 				}
 			}
 
@@ -96,17 +101,23 @@ func FindFilesSizes(dirPath string, config FindConfig) (map[int64][]FileEntry, u
 		log.Fatalf("error walking the path %q: %v\n", dirPath, err)
 	}
 
+	if config.Verbose {
+		logger.Printf("Found %v files\n", numFiles)
+	}
+
 	return fileMap, numFiles
 }
 
-func FindSizeDupes(fileSizeMap map[int64][]FileEntry) map[int64][]FileEntry {
+func FindSizeDupes(fileSizeMap map[int64][]FileEntry) (map[int64][]FileEntry, int) {
 	dupesMap := map[int64][]FileEntry{}
+	var numSizeDupes int
 	for key, entries := range fileSizeMap {
 		if len(entries) > 1 {
 			dupesMap[key] = entries
+			numSizeDupes += len(entries)
 		}
 	}
-	return dupesMap
+	return dupesMap, numSizeDupes
 }
 
 // find all the duplicate files in the dir
@@ -114,7 +125,12 @@ func FindSizeDupes(fileSizeMap map[int64][]FileEntry) map[int64][]FileEntry {
 // TODO: this might need to be broken up to aid garbage collection ??
 func FindDupes(dirPath string, findConfig FindConfig, hashConfig HashConfig) (map[string][]FileHashEntry, uint64) {
 	fileSizeMap, numAllFiles := FindFilesSizes(dirPath, findConfig)
-	sizeDupes := FindSizeDupes(fileSizeMap)
+	sizeDupes, numSizeDupes := FindSizeDupes(fileSizeMap)
+
+	if findConfig.Verbose {
+		logger.Printf("Found %v size duplicates\n", numSizeDupes)
+	}
+
 	hashDupes := FindHashDupes(sizeDupes, hashConfig)
 	return hashDupes, numAllFiles
 }
