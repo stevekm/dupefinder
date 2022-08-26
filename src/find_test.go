@@ -128,7 +128,8 @@ func TestFindDupes(t *testing.T) {
 		}
 
 		// test that the expected number of files were processed
-		if int(gotNumFiles) != wantNumFiles {
+		// we skipped a dir so there should have been one fewer files processed by 'find'
+		if int(gotNumFiles) != wantNumFiles - 1 {
 			t.Errorf("gotNumFiles %v is not the same as wantNumFiles: %v", gotNumFiles,  wantNumFiles)
 		}
 
@@ -158,11 +159,12 @@ func TestTooManyFiles(t *testing.T) {
 
 	t.Run("Find dupes without exceeding the limit on number of open files", func(t *testing.T) {
 		// make a large number of temp files, each with different contents
-		wantNumFiles := 20000
-		ints := makeRange(0, wantNumFiles)
+		var wantNumFiles int
+		ints := makeRange(0, 20000)
 		for i := range ints {
 			i_str := strconv.Itoa(i)
 			t, _ := createTempFile(tempdir, i_str, i_str)
+			wantNumFiles += 1
 			t.Close()
 		}
 		// create two temp files with the same contents
