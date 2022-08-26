@@ -6,71 +6,48 @@ import (
 	"testing"
 )
 
-func TestHash(t *testing.T) {
+// test cases for hashing algos
+func TestHash(t *testing.T){
 	// setup test dirs & files
 	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
-	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
 
-	t.Run("Get md5 hash", func(t *testing.T) {
-		hashConfig := HashConfig{}
-		got := getFileMD5(tempfile1, hashConfig)
-		want := "9d365f59076828add0b000414583cb33"
-		if got != want {
-			t.Errorf("got %v is not the same as %v", got, want)
-		}
-	})
+	tests := map[string]struct {
+		config HashConfig
+		want  string
+	}{
+		"test_md5": {
+			config: HashConfig{},
+			want: "9d365f59076828add0b000414583cb33",
+		},
+		"test_sha1": {
+			config: HashConfig{Algo: "sha1"},
+			want: "67503a007b3829965fde57d51768bdb32bb0389f",
+		},
+		"test_sha256": {
+			config: HashConfig{Algo: "sha256"},
+			want: "fd6e46528c86f5f2a43aa9f013bf64fcc6939606e077bf3a4b14ef09fcb46f59",
+		},
+		"test_xxhash": {
+			config: HashConfig{Algo: "xxhash"},
+			want: "b59acf3d21a6a54a",
+		},
+	}
 
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
+			got := getFileMD5(tempfile1, tc.config)
+			if got != tc.want {
+				t.Errorf("got %v is not the same as %v", got, tc.want)
+			}
+		})
+	}
 }
 
-func TestHashSHA1(t *testing.T) {
-	// setup test dirs & files
-	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
-	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
-
-	t.Run("Get sha1 hash", func(t *testing.T) {
-		hashConfig := HashConfig{Algo: "sha1"}
-		got := getFileMD5(tempfile1, hashConfig)
-		want := "67503a007b3829965fde57d51768bdb32bb0389f"
-		if got != want {
-			t.Errorf("got %v is not the same as %v", got, want)
-		}
-	})
-}
-
-func TestHashSHA256(t *testing.T) {
-	// setup test dirs & files
-	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
-	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
-
-	t.Run("Get sha256 hash", func(t *testing.T) {
-		hashConfig := HashConfig{Algo: "sha256"}
-		got := getFileMD5(tempfile1, hashConfig)
-		want := "fd6e46528c86f5f2a43aa9f013bf64fcc6939606e077bf3a4b14ef09fcb46f59"
-		if got != want {
-			t.Errorf("got %v is not the same as %v", got, want)
-		}
-	})
-}
-
-func TestHashXXHASH(t *testing.T) {
-	// setup test dirs & files
-	tempdir := t.TempDir() // automatically gets cleaned up when all tests end
-	tempfile1, _ := createTempFile(tempdir, "f.", "writes\n")
-
-	t.Run("Get xxhash hash", func(t *testing.T) {
-		hashConfig := HashConfig{Algo: "xxhash"}
-		got := getFileMD5(tempfile1, hashConfig)
-		want := "b59acf3d21a6a54a"
-		if got != want {
-			t.Errorf("got %v is not the same as %v", got, want)
-		}
-	})
-}
-
+// test case for hashing only a certain amount of bytes
 func TestHashN(t *testing.T) {
 	tempdir := t.TempDir()
 	tempfile, _ := createLargeFile(tempdir, 4e5)
-	// tempfileEntry := NewFileEntryFromPathInfo(tempfile.Name(), info)
 
 	t.Run("Hash only the file head", func(t *testing.T) {
 		// hash the entire file
